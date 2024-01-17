@@ -192,13 +192,13 @@ class HuskyCPEnv(Env):
         #reward = np.float64(np.dot(rew_atr,rew_wgt))
 
         # No risk
-        reward = 100*self.step_no - np.abs(self.error)
+        reward = 100*self.step_no - 2*np.abs(self.error)
         reward = np.float64(reward)
 
 
         # Check for reset conditions
         # Removing episode length termination from reset condition
-        if self.error>=35 or reset == 1:
+        if self.error>=50 or reset == 1:
             done = True
         else:
             done = False

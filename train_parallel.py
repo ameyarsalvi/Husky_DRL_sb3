@@ -106,7 +106,7 @@ def make_env(env_id, rank, seed=0):
 
 if __name__ == '__main__':
     env_id = "huskyCP_gym/HuskyRL-v0"
-    num_cpu = 5  # Number of processes to use
+    num_cpu = 10  # Number of processes to use
     # Create the vectorized environment
     env = SubprocVecEnv([make_env(env_id, i) for i in range(num_cpu)], start_method='fork')
     env = VecMonitor(env, filename=tmp_path)
