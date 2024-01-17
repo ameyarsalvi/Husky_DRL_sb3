@@ -106,7 +106,7 @@ def make_env(env_id, rank, seed=0):
 
 if __name__ == '__main__':
     env_id = "huskyCP_gym/HuskyRL-v0"
-    num_cpu = 10  # Number of processes to use
+    num_cpu = 5  # Number of processes to use
     # Create the vectorized environment
     env = SubprocVecEnv([make_env(env_id, i) for i in range(num_cpu)], start_method='fork')
     env = VecMonitor(env, filename=tmp_path)
@@ -124,21 +124,29 @@ if __name__ == '__main__':
     callback = SaveOnBestTrainingRewardCallback(check_freq=1000, log_dir=tmp_path)
 
     checkpoint_callback = CheckpointCallback(save_freq=50000,save_path="/home/asalvi/code_workspace/tmp/sb3_log/checkpoints/",name_prefix="rl_model",save_replay_buffer=True,save_vecnormalize=True)
-#Trial 45 finished with value: 1722774.8 and parameters: {'batch_size': 16, 'n_steps': 512, 'gamma': 0.999,
-# 'learning_rate': 2.3619835165347963e-05, 'ent_coef': 0.06114153352107283, 'clip_range': 0.3, 'n_epochs': 5, 'gae_lambda': 0.98, 
-#    'max_grad_norm': 2, 'vf_coef': 0.7038282855671179, 'net_arch': 'small', 'log_std_init': -2.166570246928069, 'sde_sample_freq': 32, 'activation_fn': 'tanh'}. Best is trial 45 with value: 1722774.8.
-    
- #  policy_kwargs: "dict(
- #                   log_std_init=-2,
- #                   ortho_init=False,
- #                   activation_fn=nn.ReLU,
- #                   net_arch=dict(pi=[256, 256], vf=[256, 256])
- #                 )"
+  # Using the followin best hyperparams
+    '''
+    {
+    "batch_size": 128,
+    "n_steps": 128,
+    "gamma": 0.999,
+    "learning_rate": 0.0048739625454845385,
+    "ent_coef": 0.07828156338046847,
+    "clip_range": 0.3,
+    "n_epochs": 5,
+    "gae_lambda": 0.98,
+    "max_grad_norm": 0.3,
+    "vf_coef": 0.5343292852148602,
+    "net_arch": "medium", #But chose small
+    "log_std_init": -2.224737247958312,
+    "sde_sample_freq": 8,
+    "activation_fn": "tanh"
+}
+    '''
 
-
-    model = PPO("CnnPolicy", env,learning_rate=2.36e-05, n_steps=512, batch_size=16, n_epochs=5, ent_coef= 0.06, gamma=0.999, gae_lambda=0.98,
-                 clip_range=0.3, vf_coef=0.7, max_grad_norm=2,sde_sample_freq=32,
-                 policy_kwargs=dict(normalize_images=False, log_std_init=-2.166570246928069,ortho_init=False, activation_fn=nn.Tanh, net_arch=dict(pi=[64, 64], vf=[64, 64])), 
+    model = PPO("CnnPolicy", env,learning_rate=0.0048739625454845385, n_steps=128, batch_size=128, n_epochs=5, ent_coef= 0.07828156338046847, gamma=0.999, gae_lambda=0.98,
+                 clip_range=0.3, vf_coef=0.7, max_grad_norm=0.5,sde_sample_freq=8,
+                 policy_kwargs=dict(normalize_images=False, log_std_init=-2.224737247958312,ortho_init=False, activation_fn=nn.Tanh, net_arch=dict(pi=[64, 64], vf=[64, 64])), 
                  verbose=1, tensorboard_log=tmp_path)
     
     model.set_logger(new_logger)

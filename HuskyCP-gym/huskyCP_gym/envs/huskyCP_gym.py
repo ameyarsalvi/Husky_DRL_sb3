@@ -124,15 +124,16 @@ class HuskyCPEnv(Env):
 
         # Current image
         cropped_image = img[288:480, 192:448] # Crop image to only to relevant path data (Done heuristically)
+        crop_error = img[400:480, 192:448] # Crop image to only to relevant path data (Done heuristically)
         im_bw = cv2.threshold(cropped_image, 125, 255, cv2.THRESH_BINARY)[1]  # convert the grayscale image to binary image
         noise = np.random.normal(0, 25, im_bw.shape).astype(np.uint8)
         noisy_image = cv2.add(im_bw, noise)
         im_bw = np.frombuffer(noisy_image, dtype=np.uint8).reshape(192, 256, 1) # Reshape to required observation size
-        #cv2.imshow("Image Now", im_bw)
+        #cv2.imshow("Image Now", crop_error)
         #cv2.waitKey(1)
 
         #Calcuation of centroid for lane centering
-        M = cv2.moments(im_bw) # calculate moments of binary image
+        M = cv2.moments(crop_error) # calculate moments of binary image
         # calculate x,y coordinate of center
         if M["m00"] != 0:
             cX = int(M["m10"] / M["m00"])
@@ -140,19 +141,18 @@ class HuskyCPEnv(Env):
         else:
             cX, cY = 0, 0
     
-        '''
-        This code is to plot centroid on the processed image and display it
+        
+        #This code is to plot centroid on the processed image and display it
         # put text and highlight the center
-        #cv2.circle(cropped_image, (cX, cY), 5, (255, 255, 255), -1)
-        #cv2.putText(cropped_image, "centroid", (cX - 25, cY - 25),cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+        #cv2.circle(crop_error, (cX, cY), 5, (255, 255, 255), -1)
+        #cv2.putText(crop_error, "centroid", (cX - 25, cY - 25),cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
 
         #resize_img = cv2.resize(cropped_image  , (10 , 5))
     
         # display the image
-        #cv2.imshow("Image", img_lowQ)
-
+        #cv2.imshow("Image", crop_error)
         #cv2.waitKey(1)
-        '''
+        
 
 
         # Centering Error :
