@@ -62,7 +62,7 @@ class HuskyCPEnv(Env):
         self.floor_y_goal = 15
         self.episode_length = 5000
         self.step_no = 0
-
+        self.global_timesteps = 0
         '''
         #These are some declerations from Go to goal
 
@@ -124,7 +124,7 @@ class HuskyCPEnv(Env):
 
         # Current image
         cropped_image = img[288:480, 192:448] # Crop image to only to relevant path data (Done heuristically)
-        crop_error = img[400:480, 192:448] # Crop image to only to relevant path data (Done heuristically)
+        crop_error = img[320:480, 192:448] # Crop image to only to relevant path data (Done heuristically)
         im_bw = cv2.threshold(cropped_image, 125, 255, cv2.THRESH_BINARY)[1]  # convert the grayscale image to binary image
         noise = np.random.normal(0, 25, im_bw.shape).astype(np.uint8)
         noisy_image = cv2.add(im_bw, noise)
@@ -157,6 +157,7 @@ class HuskyCPEnv(Env):
 
         # Centering Error :
         self.error = 128 - cX #Lane centering error that can be used in reward function
+        #print(self.error)
         self.centroid_buffer.append(self.error) #This maintains a size 10 buffer which resets if all elements are -2 indicating the robot has strayed
         res = self.centroid_buffer[-10:]
         #if np.sum(res) == -20:
@@ -192,7 +193,8 @@ class HuskyCPEnv(Env):
         #reward = np.float64(np.dot(rew_atr,rew_wgt))
 
         # No risk
-        reward = 100*self.step_no - 2*np.abs(self.error)
+        inc_wt = 4*self.global_timesteps*1e-6 
+        reward = 10*self.step_no - inc_wt*np.abs(self.error)
         reward = np.float64(reward)
 
 
@@ -206,7 +208,8 @@ class HuskyCPEnv(Env):
 
         # Update Global variables
         self.episode_length -= 1 #Update episode step counter
-        self.step_no += 1    
+        self.step_no += 1 
+        self.global_timesteps +=1   
 
         info ={}
 

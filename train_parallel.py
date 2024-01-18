@@ -26,6 +26,19 @@ sys.path.insert(0, "/home/asalvi/code_workspace/Husky_CS_SB3/train/HuskyCP-gym")
 import huskyCP_gym
 
 
+# Create log dir
+import os
+#log_dir = "/home/asalvi/code_workspace/tmp/log0"
+#os.makedirs(log_dir, exist_ok=True)
+
+tmp_path = "/home/asalvi/code_workspace/tmp/sb3_log/log0/"
+# set up logger
+new_logger = configure(tmp_path, ["stdout", "csv", "tensorboard"])
+
+total_timesteps = 5e6
+
+# Callback Definitions
+
 class SaveOnBestTrainingRewardCallback(BaseCallback):
     """
     Callback for saving a model (the check is done every ``check_freq`` steps)
@@ -70,18 +83,6 @@ class SaveOnBestTrainingRewardCallback(BaseCallback):
                   self.model.save(self.save_path)
 
         return True
-
-
-
-
-# Create log dir
-import os
-#log_dir = "/home/asalvi/code_workspace/tmp/log0"
-#os.makedirs(log_dir, exist_ok=True)
-
-tmp_path = "/home/asalvi/code_workspace/tmp/sb3_log/log0/"
-# set up logger
-new_logger = configure(tmp_path, ["stdout", "csv", "tensorboard"])
 
 
 
@@ -144,13 +145,13 @@ if __name__ == '__main__':
 }
     '''
 
-    model = PPO("CnnPolicy", env,learning_rate=0.0048739625454845385, n_steps=128, batch_size=128, n_epochs=5, ent_coef= 0.07828156338046847, gamma=0.999, gae_lambda=0.98,
-                 clip_range=0.3, vf_coef=0.7, max_grad_norm=0.5,sde_sample_freq=8,
-                 policy_kwargs=dict(normalize_images=False, log_std_init=-2.224737247958312,ortho_init=False, activation_fn=nn.Tanh, net_arch=dict(pi=[64, 64], vf=[64, 64])), 
-                 verbose=1, tensorboard_log=tmp_path)
+    model = PPO("CnnPolicy", env,learning_rate=0.005, n_steps=512, batch_size=32, n_epochs=5, ent_coef= 0.1, gamma=0.999, gae_lambda=0.98,
+                clip_range=0.2, vf_coef=0.7, max_grad_norm=1.0,sde_sample_freq=8, 
+                policy_kwargs=dict(normalize_images=False, log_std_init=-2.22,ortho_init=False, activation_fn=nn.Tanh, net_arch=dict(pi=[64, 64], vf=[64, 64])), 
+                verbose=1, tensorboard_log=tmp_path)
     
     model.set_logger(new_logger)
-    model.learn(total_timesteps=5e6, callback=checkpoint_callback, progress_bar= True)
+    model.learn(total_timesteps, callback=checkpoint_callback, progress_bar= True)
     model.save("husky_VS_parallel")
 
     obs = env.reset()
