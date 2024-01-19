@@ -31,7 +31,7 @@ import os
 #log_dir = "/home/asalvi/code_workspace/tmp/log0"
 #os.makedirs(log_dir, exist_ok=True)
 
-tmp_path = "/home/asalvi/code_workspace/tmp/sb3_log/log0/"
+tmp_path = "/home/asalvi/code_workspace/tmp/sb3_log/log3/"
 # set up logger
 new_logger = configure(tmp_path, ["stdout", "csv", "tensorboard"])
 
@@ -96,7 +96,7 @@ def make_env(env_id, rank, seed=0):
     :param rank: (int) index of the subprocess
     """
     def _init():
-        port_no = str(23004 + 2*rank)
+        port_no = str(23020 + 2*rank)
         print(port_no)
         env = gym.make(env_id, port = port_no)
         #env.seed(seed + rank)
@@ -124,7 +124,7 @@ if __name__ == '__main__':
 
     callback = SaveOnBestTrainingRewardCallback(check_freq=1000, log_dir=tmp_path)
 
-    checkpoint_callback = CheckpointCallback(save_freq=50000,save_path="/home/asalvi/code_workspace/tmp/sb3_log/checkpoints/",name_prefix="rl_model",save_replay_buffer=True,save_vecnormalize=True)
+    checkpoint_callback = CheckpointCallback(save_freq=50000,save_path="/home/asalvi/code_workspace/tmp/sb3_log/checkpoints3/",name_prefix="rl_model3",save_replay_buffer=True,save_vecnormalize=True)
   # Using the followin best hyperparams
     '''
     {
@@ -145,14 +145,14 @@ if __name__ == '__main__':
 }
     '''
 
-    model = PPO("CnnPolicy", env,learning_rate=0.0001, n_steps=512, batch_size=64, n_epochs=4, ent_coef= 0.3, gamma=0.999, gae_lambda=0.98,
+    model = PPO("CnnPolicy", env,learning_rate=0.0001, n_steps=512, batch_size=64, n_epochs=4, ent_coef= 0.1, gamma=0.999, gae_lambda=0.98,
                 clip_range=0.2, vf_coef=0.7, max_grad_norm=1.0,sde_sample_freq=8, 
                 policy_kwargs=dict(normalize_images=False, log_std_init=-2.22,ortho_init=False, activation_fn=nn.Tanh, net_arch=dict(pi=[64, 64], vf=[64, 64])), 
                 verbose=1, tensorboard_log=tmp_path)
     
     model.set_logger(new_logger)
     model.learn(total_timesteps, callback=checkpoint_callback, progress_bar= True)
-    model.save("husky_VS_parallel")
+    model.save("husky_VS_parallel2")
 
     obs = env.reset()
     for _ in range(1000):

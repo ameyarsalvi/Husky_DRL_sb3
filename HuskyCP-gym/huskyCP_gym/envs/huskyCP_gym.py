@@ -95,7 +95,7 @@ class HuskyCPEnv(Env):
         # x_dot = [0.081675 0.081675; -0.1081 -0.1081] phi_dot
         A = np.array([[0.081675,0.081675],[-0.1081,0.1081]])
         #V = 0.15*action[0] + 0.65 #V range : [0.5 0.8] 
-        V = 0.05*action[0] + 0.65 # >> Constrain to [0.6 0.7]
+        V = 0.45*action[0] + 0.55 # >> Constrain to [0.6 0.7] >> Complete space 0 -> 1
         omega = 0.5*action[1] #Omega range : [-0.5 0.5]
         velocity = np.array([V,omega])
         phi_dots = np.matmul(inv(A),velocity) #Inverse Kinematics
@@ -193,8 +193,9 @@ class HuskyCPEnv(Env):
         #reward = np.float64(np.dot(rew_atr,rew_wgt))
 
         # No risk
-        inc_wt = 4*self.global_timesteps*1e-6 
-        reward = 10*self.step_no - inc_wt*np.abs(self.error)
+        #inc_wt = 4*self.global_timesteps*1e-6 
+        velocity_error = np.abs(1-V)
+        reward = 100*self.step_no - 50*np.abs(self.error) - 100*velocity_error
         reward = np.float64(reward)
 
 
