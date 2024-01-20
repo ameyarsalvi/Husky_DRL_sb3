@@ -107,14 +107,14 @@ def make_env(env_id, rank, seed=0):
 
 if __name__ == '__main__':
     env_id = "huskyCP_gym/HuskyRL-v0"
-    num_cpu = 4  # Number of processes to use
+    num_cpu = 8  # Number of processes to use
     # Create the vectorized environment
     env = SubprocVecEnv([make_env(env_id, i) for i in range(num_cpu)], start_method='fork')
     env = VecMonitor(env, filename=tmp_path)
     env = VecTransposeImage(env, skip=False)
     
     #env = make_vec_env(env_id, n_envs=num_cpu, vec_env_cls=SubprocVecEnv)
-    env = VecNormalize(env, training=True, norm_obs=False, norm_reward=True, clip_obs=10.0, clip_reward=50.0, gamma=0.99, epsilon=1e-08, norm_obs_keys=None)
+    #env = VecNormalize(env, training=True, norm_obs=False, norm_reward=True, clip_obs=10.0, clip_reward=50.0, gamma=0.99, epsilon=1e-08, norm_obs_keys=None)
     #env = VecFrameStack(env, n_stack=4) # This is an alternative to LSTM format
     #env = stacked_observations.StackedObservations(num_envs= num_cpu, n_stack = 4,observation_space =[0,255], channels_order="last")
 
@@ -127,26 +127,29 @@ if __name__ == '__main__':
     checkpoint_callback = CheckpointCallback(save_freq=50000,save_path="/home/asalvi/code_workspace/tmp/sb3_log/checkpoints/",name_prefix="rl_model",save_replay_buffer=True,save_vecnormalize=True)
   # Using the followin best hyperparams
     '''
-    {
-    "batch_size": 128,
-    "n_steps": 128,
-    "gamma": 0.999,
-    "learning_rate": 0.0048739625454845385,
-    "ent_coef": 0.07828156338046847,
-    "clip_range": 0.3,
-    "n_epochs": 5,
-    "gae_lambda": 0.98,
-    "max_grad_norm": 0.3,
-    "vf_coef": 0.5343292852148602,
-    "net_arch": "medium", #But chose small
-    "log_std_init": -2.224737247958312,
-    "sde_sample_freq": 8,
-    "activation_fn": "tanh"
-}
+    Number of finished trials:  500
+    Best trial:
+    Value:  105537.374862
+    Params: 
+    batch_size: 64
+    n_steps: 1024
+    gamma: 0.9
+    learning_rate: 0.19802855204471528
+    ent_coef: 1.0857490714728394e-07
+    clip_range: 0.4
+    n_epochs: 1
+    gae_lambda: 0.98
+    max_grad_norm: 5
+    vf_coef: 0.5215605235489864
+    net_arch: medium
+    log_std_init: -2.921798524714893
+    sde_sample_freq: 16
+    activation_fn: relu
+    
     '''
 
-    model = PPO("CnnPolicy", env,learning_rate=0.0001, n_steps=512, batch_size=64, n_epochs=4, ent_coef= 0.3, gamma=0.999, gae_lambda=0.98,
-                clip_range=0.2, vf_coef=0.7, max_grad_norm=1.0,sde_sample_freq=8, 
+    model = PPO("CnnPolicy", env,learning_rate=0.01, n_steps=512, batch_size=64, n_epochs=4, ent_coef= 0.001, gamma=0.9, gae_lambda=0.98,
+                clip_range=0.1, vf_coef=0.5, max_grad_norm=2.0,sde_sample_freq=16, 
                 policy_kwargs=dict(normalize_images=False, log_std_init=-2.22,ortho_init=False, activation_fn=nn.Tanh, net_arch=dict(pi=[64, 64], vf=[64, 64])), 
                 verbose=1, tensorboard_log=tmp_path)
     

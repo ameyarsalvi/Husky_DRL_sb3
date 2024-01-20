@@ -194,14 +194,18 @@ class HuskyCPEnv(Env):
 
         # No risk
         #inc_wt = 4*self.global_timesteps*1e-6 
-        velocity_error = np.abs(1-V)
-        reward = 100*self.step_no - 50*np.abs(self.error) - 100*velocity_error
+        err_vel = np.abs(1-V)
+        err_track = np.abs(self.error)
+        norm_err_vel = (err_vel - 0)/(0.9)
+        norm_err_track = (err_track -0)/50
+        norm_err_step = (self.step_no -0)/5000
+        reward = 4*norm_err_step - 2*norm_err_track - 2*norm_err_vel
         reward = np.float64(reward)
 
 
         # Check for reset conditions
         # Removing episode length termination from reset condition
-        if self.error>=50 or reset == 1:
+        if self.episode_length ==0 or self.error>=50 or reset == 1:
             done = True
         else:
             done = False
