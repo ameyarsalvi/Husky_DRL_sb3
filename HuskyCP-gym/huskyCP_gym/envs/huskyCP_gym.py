@@ -14,7 +14,7 @@ from numpy import savetxt
 import os
 
 import sys
-sys.path.insert(0, "/home/asalvi/code_workspace/Husky_CS_SB3/train/")
+sys.path.insert(0,"/home/asalvi/Husky_DRL_sb3/")
 
 import time
 import math

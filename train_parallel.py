@@ -22,7 +22,7 @@ from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.utils import set_random_seed
 
 import sys
-sys.path.insert(0, "/home/asalvi/code_workspace/Husky_CS_SB3/train/HuskyCP-gym")
+sys.path.insert(0,"/home/asalvi/Husky_DRL_sb3/HuskyCP-gym")
 import huskyCP_gym
 
 
@@ -31,7 +31,7 @@ import os
 #log_dir = "/home/asalvi/code_workspace/tmp/log0"
 #os.makedirs(log_dir, exist_ok=True)
 
-tmp_path = "/home/asalvi/code_workspace/tmp/sb3_log/medium/"
+tmp_path = "/home/asalvi/temp_learn/log1/"
 # set up logger
 new_logger = configure(tmp_path, ["stdout", "csv", "tensorboard"])
 
@@ -134,7 +134,7 @@ if __name__ == '__main__':
     
     model.set_logger(new_logger)
     model.learn(total_timesteps, callback=callback, progress_bar= True)
-    model.save("/home/asalvi/code_workspace/tmp/sb3_log/medium/HuskyVS")
+    model.save("/home/asalvi/temp_learn/log1/")
 
     obs = env.reset()
     for _ in range(1000):
