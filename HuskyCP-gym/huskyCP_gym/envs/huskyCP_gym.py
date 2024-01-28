@@ -8,6 +8,8 @@ import random
 import torch
 import cv2
 from numpy.linalg import inv
+from numpy import savetxt
+
 
 import os
 
@@ -63,6 +65,8 @@ class HuskyCPEnv(Env):
         self.episode_length = 5000
         self.step_no = 0
         self.global_timesteps = 0
+        self.log_error = []
+        self.log_vel =[]
         '''
         #These are some declerations from Go to goal
 
@@ -100,7 +104,7 @@ class HuskyCPEnv(Env):
         # A_high = np.array([[0.0825,0.0825],[-0.1122,0.1122]])
         
         #A = np.array([[0.0825,0.0825],[-0.1122,0.1122]])
-        A = np.array([[0.0701,0.0701],[-0.1351,0.1351]])
+        A = np.array([[0.0743,0.0743],[-0.1025,0.1025]])
         #V = 0.15*action[0] + 0.65 #V range : [0.5 0.8] 
         V = 0.45*action[0] + 0.55 # >> Constrain to [0.6 0.7] >> Complete space 0 -> 1
         omega = 0.5*action[1] #Omega range : [-0.5 0.5]
@@ -131,12 +135,13 @@ class HuskyCPEnv(Env):
 
         # Current image
         cropped_image = img[288:480, 192:448] # Crop image to only to relevant path data (Done heuristically)
-        crop_error = img[400:480, 192:448] # Crop image to only to relevant path data (Done heuristically)
+        crop_error = img[288:480, 192:448] # Crop image to only to relevant path data (Done heuristically)
         im_bw = cv2.threshold(cropped_image, 125, 255, cv2.THRESH_BINARY)[1]  # convert the grayscale image to binary image
         noise = np.random.normal(0, 25, im_bw.shape).astype(np.uint8)
         noisy_image = cv2.add(im_bw, noise)
         im_bw = np.frombuffer(noisy_image, dtype=np.uint8).reshape(192, 256, 1) # Reshape to required observation size
-        #cv2.imshow("Image Now", crop_error)
+        #cv2.imshow("For Calc", crop_error)
+        #cv2.imshow("obs", im_bw)
         #cv2.waitKey(1)
 
         #Calcuation of centroid for lane centering
@@ -210,23 +215,35 @@ class HuskyCPEnv(Env):
         track_vel = 1
         err_vel = np.abs(track_vel - realized_vel)
         err_track = np.abs(self.error)
-        if err_track > 50:
-            err_track = 50   
+        if err_track > 10:
+            err_track = 10   
         else:
             pass        
         norm_err_vel = (err_vel - 0)/(0.9)
-        norm_err_track = (err_track -0)/50
+        norm_err_track = (err_track -0)/10
         norm_err_step = (self.step_no -0)/5000
-        #reward = 2*(norm_err_step/(norm_err_track+0.001)) - 0*norm_err_vel
+
+        #Pretraining 
+        #omega_des = -0.05*self.error
+        #act_error = omega_des - omega
+        #norm_act_error = (act_error + 1 )/2
+        #reward = (1 - norm_act_error)**2
+
         reward = (1 - norm_err_track)**2 + (1 - norm_err_vel)**2
         #reward = np.float64(reward)
         #reward = 1 - norm_err_track
         reward = np.float64(reward)
 
+        #self.log_error.append(err_track)
+        #savetxt('/home/asalvi/code_workspace/Husky_CS_SB3/csv_data/error.csv', self.log_error, delimiter=',')
+        #self.log_vel.append(realized_vel)
+        #savetxt('/home/asalvi/code_workspace/Husky_CS_SB3/csv_data/vel.csv', self.log_vel, delimiter=',')
+
+
 
         # Check for reset conditions
         # Removing episode length termination from reset condition
-        if self.episode_length ==0 or err_track>50 or reset == 1:
+        if self.episode_length ==0 or err_track>10 or reset == 1:
             done = True
         else:
             done = False

@@ -25,7 +25,7 @@ import torch
 #from torch import Model # Made up package
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-model = PPO.load("/home/asalvi/code_workspace/Husky_CS_SB3/train/test.zip", device='cuda')
+model = PPO.load("/home/asalvi/Downloads/best_model_parallel_VS.zip", device='cuda')
 #print(model.policy)
 
 #model = PPO()
@@ -43,7 +43,7 @@ print('Program started')
 
 
 
-client = RemoteAPIClient('localhost',23002)
+client = RemoteAPIClient('localhost',23004)
 sim = client.getObject('sim')
 
 visionSensorHandle = sim.getObject('/Vision_sensor')
@@ -140,7 +140,7 @@ while (t:= sim.getSimulationTime()) < 600:
     img = cv2.flip(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), 0) #Convert to Grayscale
 
             # Current image
-    cropped_image = img[288:480, 192:448] # Crop image to only to relevant path data (Done heuristically)
+    cropped_image = img[400:480, 192:448] # Crop image to only to relevant path data (Done heuristically)
     im_bw = cv2.threshold(cropped_image, 125, 255, cv2.THRESH_BINARY)[1]  # convert the grayscale image to binary image
     #print(im_bw.shape)
  
@@ -161,19 +161,21 @@ while (t:= sim.getSimulationTime()) < 600:
     #print(cX)
  
     # put text and highlight the center
-    #cv2.circle(cropped_image, (cX, cY), 5, (255, 255, 255), -1)
-    #cv2.putText(cropped_image, "centroid", (cX - 25, cY - 25),cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+    cv2.circle(im_bw, (cX, cY), 5, (255, 255, 255), -1)
+    cv2.putText(im_bw, "centroid", (cX - 25, cY - 25),cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
 
  
     # display the image
-    #cv2.imshow("Image", cropped_image)
+    cv2.imshow("Image", im_bw)
 
-    #cv2.waitKey(1)
+    cv2.waitKey(1)
 
     ###################### Image processing Ends here
 
     # Centering Error :
-    error = 128 - cX
+    error = float(128 - cX)
+
+    '''
 
     #Neural network for inference ############### << Here
 
@@ -209,17 +211,21 @@ while (t:= sim.getSimulationTime()) < 600:
     omega = 0.5*a[1].item()#Omega range : [-0.5 0.5]
     print(V)
     print(omega)
-
+    '''
     ##################### <<< To Here
 
-    '''
+    
     ###### Generate control commands
 
-    p_gain = -1.0
+    p_gain = -0.01
 
-    V = 1.0
+    V = 0.5
     omega = p_gain*error 
-    '''
+    print(error)
+    #print()
+    print(omega)
+    #print(omega.type)
+    
     ## Control map:
     # x_dot = [0.081675 0.081675; -0.1081 -0.1081] phi_dot
 
@@ -296,7 +302,7 @@ while (t:= sim.getSimulationTime()) < 600:
 
 
     sim_time.append(t)
-    print(t)
+    #print(t)
 
     client.step()  # triggers next simulation step
 

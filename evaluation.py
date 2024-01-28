@@ -28,7 +28,7 @@ env = Monitor(env, eval_log_dir)
 # NOTE: if you have loading issue, you can pass `print_system_info=True`
 # to compare the system on which the model was trained vs the current one
 #model = PPO.load("/home/asalvi/code_workspace/tmp/sb3_log/log2/logHS/best_model_parallel_VS.zip", env=env, print_system_info=True)
-model = PPO.load("test.zip", env=env, print_system_info=True)
+model = PPO.load("/home/asalvi/code_workspace/tmp/sb3_log/log2/logHS/best_model_LS.zip", env=env, print_system_info=True)
 
 
 # Evaluate the agent
@@ -36,4 +36,4 @@ model = PPO.load("test.zip", env=env, print_system_info=True)
 #       this will be reflected here. To evaluate with original rewards,
 #       wrap environment in a "Monitor" wrapper before other wrappers.
 
-mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=10000, deterministic = True)
+mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=10000, deterministic = False)
