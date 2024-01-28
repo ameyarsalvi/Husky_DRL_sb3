@@ -135,16 +135,18 @@ class HuskyCPEnv(Env):
 
         # Current image
         cropped_image = img[288:480, 192:448] # Crop image to only to relevant path data (Done heuristically)
-        crop_error = img[288:480, 192:448] # Crop image to only to relevant path data (Done heuristically)
+        crop_error = img[400:480, 192:448] # Crop image to only to relevant path data (Done heuristically)
         im_bw = cv2.threshold(cropped_image, 125, 255, cv2.THRESH_BINARY)[1]  # convert the grayscale image to binary image
         noise = np.random.normal(0, 25, im_bw.shape).astype(np.uint8)
         noisy_image = cv2.add(im_bw, noise)
         im_bw = np.frombuffer(noisy_image, dtype=np.uint8).reshape(192, 256, 1) # Reshape to required observation size
+        im_bw_obs = ~im_bw
         #cv2.imshow("For Calc", crop_error)
         #cv2.imshow("obs", im_bw)
         #cv2.waitKey(1)
 
         #Calcuation of centroid for lane centering
+        crop_error = ~crop_error
         M = cv2.moments(crop_error) # calculate moments of binary image
         # calculate x,y coordinate of center
         if M["m00"] != 0:
@@ -186,7 +188,7 @@ class HuskyCPEnv(Env):
 
 
         #Send observation for learning
-        self.state = np.array(im_bw,dtype = np.uint8) #Just input image to CNN network
+        self.state = np.array(im_bw_obs,dtype = np.uint8) #Just input image to CNN network
 
         #Display what is being sent as an observation for training :
         #cv2.imshow("Image", im_bw)
@@ -215,12 +217,12 @@ class HuskyCPEnv(Env):
         track_vel = 1
         err_vel = np.abs(track_vel - realized_vel)
         err_track = np.abs(self.error)
-        if err_track > 10:
-            err_track = 10   
+        if err_track > 125:
+            err_track = 125   
         else:
             pass        
         norm_err_vel = (err_vel - 0)/(0.9)
-        norm_err_track = (err_track -0)/10
+        norm_err_track = (err_track - 0)/125
         norm_err_step = (self.step_no -0)/5000
 
         #Pretraining 
@@ -243,7 +245,7 @@ class HuskyCPEnv(Env):
 
         # Check for reset conditions
         # Removing episode length termination from reset condition
-        if self.episode_length ==0 or err_track>10 or reset == 1:
+        if self.episode_length ==0 or np.abs(self.error)>125 or reset == 1:
             done = True
         else:
             done = False

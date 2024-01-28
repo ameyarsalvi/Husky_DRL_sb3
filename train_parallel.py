@@ -35,7 +35,7 @@ tmp_path = "/home/asalvi/code_workspace/tmp/sb3_log/medium/"
 # set up logger
 new_logger = configure(tmp_path, ["stdout", "csv", "tensorboard"])
 
-total_timesteps = 1e7
+total_timesteps = 5e6
 
 # Callback Definitions
 
@@ -53,7 +53,7 @@ class SaveOnBestTrainingRewardCallback(BaseCallback):
         super().__init__(verbose)
         self.check_freq = check_freq
         self.log_dir = log_dir
-        self.save_path = os.path.join(log_dir, "bestPreTrain")
+        self.save_path = os.path.join(log_dir, "best")
         self.best_mean_reward = -np.inf
 
     def _init_callback(self) -> None:
@@ -129,7 +129,7 @@ if __name__ == '__main__':
 
     model = PPO("CnnPolicy", env,learning_rate=0.001, n_steps=256, batch_size=256, n_epochs=5, ent_coef= 0.01, gamma=0.99, gae_lambda=0.99,
                 clip_range=0.1, vf_coef=0.75, max_grad_norm=1.0,sde_sample_freq=16, 
-                policy_kwargs=dict(normalize_images=False, log_std_init=-2.0,ortho_init=False, activation_fn=nn.Tanh, net_arch=dict(pi=[64,64], vf=[64,64])), 
+                policy_kwargs=dict(normalize_images=False, log_std_init=-2.0,ortho_init=False, activation_fn=nn.Tanh, net_arch=dict(pi=[64], vf=[64])), 
                 verbose=1, tensorboard_log=tmp_path)
     
     model.set_logger(new_logger)
