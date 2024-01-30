@@ -14,6 +14,7 @@ import time
 import math
 import numpy as np
 import cv2
+import os 
 import matplotlib.pyplot as plt
 from numpy import savetxt
 from numpy.linalg import inv
@@ -43,7 +44,7 @@ print('Program started')
 
 
 
-client = RemoteAPIClient('localhost',23004)
+client = RemoteAPIClient('localhost',23002)
 sim = client.getObject('sim')
 
 visionSensorHandle = sim.getObject('/Vision_sensor')
@@ -137,11 +138,19 @@ while (t:= sim.getSimulationTime()) < 600:
             # In CoppeliaSim images are left to right (x-axis), and bottom to top (y-axis)
             # (consistent with the axes of vision sensors, pointing Z outwards, Y up)
             # and color format is RGB triplets, whereas OpenCV uses BGR:
+    cv2.imwrite('/home/asalvi/code_workspace/tmp/image_data/raw_img.png', img) 
     img = cv2.flip(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), 0) #Convert to Grayscale
+    cv2.imwrite('/home/asalvi/code_workspace/tmp/image_data/bw_img.png', img) 
 
-            # Current image
+    # Current image
     cropped_image = img[400:480, 192:448] # Crop image to only to relevant path data (Done heuristically)
+
     im_bw = cv2.threshold(cropped_image, 125, 255, cv2.THRESH_BINARY)[1]  # convert the grayscale image to binary image
+    cv2.imwrite('/home/asalvi/code_workspace/tmp/image_data/binary.png', im_bw) 
+
+    noise = np.random.normal(0, 25, im_bw.shape).astype(np.uint8)
+    noisy_image = cv2.add(im_bw, noise)
+    cv2.imwrite('/home/asalvi/code_workspace/tmp/image_data/noise.png', noisy_image) 
     #print(im_bw.shape)
  
     # calculate moments of binary image

@@ -1,20 +1,21 @@
 import numpy as np
 from matplotlib import pyplot as plt
 
-sim_posX_RT = np.genfromtxt("x_pos_rt.csv")
-sim_posY_RT = np.genfromtxt("y_pos_rt.csv")
-sim_posX_ = np.genfromtxt("x_pos_.csv")
-sim_posY_ = np.genfromtxt("y_pos_.csv")
+#sim_posX_RT = np.genfromtxt("x_pos_rt.csv")
+#sim_posY_RT = np.genfromtxt("y_pos_rt.csv")
+#sim_posX_ = np.genfromtxt("x_pos_.csv")
+#sim_posY_ = np.genfromtxt("y_pos_.csv")
 
 #sim_vel_xRT = np.genfromtxt("x_vel_rt.csv")
 #sim_ang_zRT = np.genfromtxt("z_ang_rt.csv")
 
 #Regural
-sim_vel_x = np.genfromtxt("x_vel.csv")
-sim_vel_x_DS = sim_vel_x[::2]
-sim_ang_z = np.genfromtxt("z_ang.csv")
-sim_ang_z_DS = sim_ang_z[::2]
+#sim_vel_x = np.genfromtxt("x_vel.csv")
+#sim_vel_x_DS = sim_vel_x[::2]
+#sim_ang_z = np.genfromtxt("z_ang.csv")
+#sim_ang_z_DS = sim_ang_z[::2]
 
+'''
 ########Extras#########
 sim_vel_x2 = np.genfromtxt("x_vel2.csv")
 sim_vel_x2_DS = sim_vel_x2[::2]
@@ -29,11 +30,34 @@ sim_ang_z2_DS = sim_ang_z2[::2]
 
 '''
 #Mujoco
-sim_vel_xM = np.genfromtxt("x_vel_mujoco.csv")
-sim_vel_xM_DS = sim_vel_xM[::2]
-sim_ang_zM = np.genfromtxt("z_ang_mujoco.csv")
-sim_ang_zM_DS = sim_ang_zM[::2]
+sim_vel_x_1 = np.genfromtxt("/home/asalvi/code_workspace/tmp/csv_data/x_vel_1.csv")
+sim_ang_z_1 = np.genfromtxt("/home/asalvi/code_workspace/tmp/csv_data/z_ang_1.csv")
+sim_vel_x_2 = np.genfromtxt("/home/asalvi/code_workspace/tmp/csv_data/x_vel_2.csv")
+sim_ang_z_2 = np.genfromtxt("/home/asalvi/code_workspace/tmp/csv_data/z_ang_2.csv")
+sim_vel_x_3 = np.genfromtxt("/home/asalvi/code_workspace/tmp/csv_data/x_vel_3.csv")
+sim_ang_z_3 = np.genfromtxt("/home/asalvi/code_workspace/tmp/csv_data/z_ang_3.csv")
+sim_vel_x_4 = np.genfromtxt("/home/asalvi/code_workspace/tmp/csv_data/x_vel_4.csv")
+sim_ang_z_4 = np.genfromtxt("/home/asalvi/code_workspace/tmp/csv_data/z_ang_4.csv")
+sim_vel_x_5 = np.genfromtxt("/home/asalvi/code_workspace/tmp/csv_data/x_vel_5.csv")
+sim_ang_z_5 = np.genfromtxt("/home/asalvi/code_workspace/tmp/csv_data/z_ang_5.csv")
 
+sim_pos_x_1 = np.genfromtxt("/home/asalvi/code_workspace/tmp/csv_data/x_pos_1.csv")
+sim_pos_y_1 = np.genfromtxt("/home/asalvi/code_workspace/tmp/csv_data/y_pos_1.csv")
+sim_pos_x_2 = np.genfromtxt("/home/asalvi/code_workspace/tmp/csv_data/x_pos_2.csv")
+sim_pos_y_2 = np.genfromtxt("/home/asalvi/code_workspace/tmp/csv_data/y_pos_2.csv")
+sim_pos_x_3 = np.genfromtxt("/home/asalvi/code_workspace/tmp/csv_data/x_pos_3.csv")
+sim_pos_y_3 = np.genfromtxt("/home/asalvi/code_workspace/tmp/csv_data/y_pos_3.csv")
+sim_pos_x_4 = np.genfromtxt("/home/asalvi/code_workspace/tmp/csv_data/x_pos_4.csv")
+sim_pos_y_4 = np.genfromtxt("/home/asalvi/code_workspace/tmp/csv_data/y_pos_4.csv")
+sim_pos_x_5 = np.genfromtxt("/home/asalvi/code_workspace/tmp/csv_data/x_pos_5.csv")
+sim_pos_y_5 = np.genfromtxt("/home/asalvi/code_workspace/tmp/csv_data/y_pos_5.csv")
+
+#sim_vel_x100 = np.genfromtxt("/home/asalvi/code_workspace/tmp/csv_data/x_vel100.csv")
+#sim_ang_z100 = np.genfromtxt("/home/asalvi/code_workspace/tmp/csv_data/z_ang100.csv")
+#sim_vel_x150 = np.genfromtxt("/home/asalvi/code_workspace/tmp/csv_data/x_vel150.csv")
+#sim_ang_z150 = np.genfromtxt("/home/asalvi/code_workspace/tmp/csv_data/z_ang150.csv")
+
+'''
 #Bullet 2.83
 sim_vel_xB = np.genfromtxt("x_vel_bullet283.csv")
 sim_vel_xB_DS = sim_vel_xB[::2]
@@ -45,6 +69,7 @@ sim_vel_xO = np.genfromtxt("x_vel_ode.csv")
 sim_vel_xO_DS = sim_vel_xO[::2]
 sim_ang_zO = np.genfromtxt("z_ang_ode.csv")
 sim_ang_zO_DS = sim_ang_zO[::2]
+'''
 '''
 
 #Command wheel velocity 
@@ -105,32 +130,36 @@ ax4.legend(["L cmd","L rlz"])
 ax4.set(ylabel='Rad per s')
 #plt.show()
 
+'''
 
 fig2, (ax5, ax6) = plt.subplots(2, 1)
 fig2.suptitle('Model comparison')
 
 #plt.figure("Linear Velocity")
-ax5.plot(sim_vel_x_DS)
-ax5.plot(sim_vel_x2_DS,'*')
-#ax5.plot(sim_vel_x3_DS)
-#ax5.plot(sim_vel_xB_DS)
-#ax5.plot(sim_vel_xO_DS)
-ax5.plot(real_vel[4,:])
-#ax5.legend(["Body","GlobalM","Global","Real"])
+ax5.plot(sim_vel_x_1)
+ax5.plot(sim_vel_x_2)
+ax5.plot(sim_vel_x_3)
+ax5.plot(sim_vel_x_4)
+ax5.plot(sim_vel_x_5)
 ax5.set(ylabel='Linear Velocity')
 
+
+
 #plt.figure("Angular Velocity")
-ax6.plot(sim_ang_z_DS)
-ax6.plot(sim_ang_z2_DS)
-#ax6.plot(sim_ang_zB_DS)
-#ax6.plot(sim_ang_zO_DS)
-ax6.plot(-real_vel[5,:])
-ax6.legend(["Mujoco","Real"])
+ax6.plot(sim_ang_z_1)
+ax6.plot(sim_ang_z_2)
+ax6.plot(sim_ang_z_3)
+ax6.plot(sim_ang_z_4)
+ax6.plot(sim_ang_z_5)
+
 ax6.set(ylabel='Angular Velocity')
 
 plt.figure("Position")
-plt.plot(sim_posX_,sim_posY_,'--')
-plt.plot(sim_posX_RT,sim_posY_RT)
+plt.plot(sim_pos_x_1,sim_pos_y_1)
+plt.plot(sim_pos_x_2,sim_pos_y_2)
+plt.plot(sim_pos_x_3,sim_pos_y_3)
+plt.plot(sim_pos_x_4,sim_pos_y_4)
+plt.plot(sim_pos_x_5,sim_pos_y_5)
 
 
 
