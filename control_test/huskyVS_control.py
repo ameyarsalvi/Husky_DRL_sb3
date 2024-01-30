@@ -26,7 +26,7 @@ import torch
 #from torch import Model # Made up package
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-model = PPO.load("/home/asalvi/Downloads/best_model_parallel_VS.zip", device='cuda')
+model = PPO.load("/home/asalvi/Downloads/logs_br/log_ten/best_model_parallel_VS.zip", device='cuda')
 #print(model.policy)
 
 #model = PPO()
@@ -140,13 +140,14 @@ while (t:= sim.getSimulationTime()) < 600:
             # and color format is RGB triplets, whereas OpenCV uses BGR:
     cv2.imwrite('/home/asalvi/code_workspace/tmp/image_data/raw_img.png', img) 
     img = cv2.flip(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), 0) #Convert to Grayscale
-    cv2.imwrite('/home/asalvi/code_workspace/tmp/image_data/bw_img.png', img) 
+    #cv2.imwrite('/home/asalvi/code_workspace/tmp/image_data/bw_img.png', img) 
 
     # Current image
     cropped_image = img[400:480, 192:448] # Crop image to only to relevant path data (Done heuristically)
 
     im_bw = cv2.threshold(cropped_image, 125, 255, cv2.THRESH_BINARY)[1]  # convert the grayscale image to binary image
-    cv2.imwrite('/home/asalvi/code_workspace/tmp/image_data/binary.png', im_bw) 
+    #cv2.imwrite('/home/asalvi/code_workspace/tmp/image_data/binary.png', im_bw) 
+    '''
 
     noise = np.random.normal(0, 25, im_bw.shape).astype(np.uint8)
     noisy_image = cv2.add(im_bw, noise)
@@ -178,19 +179,21 @@ while (t:= sim.getSimulationTime()) < 600:
     cv2.imshow("Image", im_bw)
 
     cv2.waitKey(1)
+    '''
 
     ###################### Image processing Ends here
 
     # Centering Error :
-    error = float(128 - cX)
+    #error = float(128 - cX)
 
-    '''
+    
 
     #Neural network for inference ############### << Here
 
     noise = np.random.normal(0, 25, im_bw.shape).astype(np.uint8)
     noisy_image = cv2.add(im_bw, noise)
-    im_bw = np.frombuffer(noisy_image, dtype=np.uint8).reshape(1, 192, 256)
+    im_bw = np.frombuffer(noisy_image, dtype=np.uint8).reshape(192, 256, 1)
+    im_bw =~im_bw
     inputs = np.array(im_bw,dtype = np.uint8)
     #inputs = torch.from_numpy(inputs)
     #torch.reshape(inputs, (1, 192, 256, 1))
@@ -214,18 +217,18 @@ while (t:= sim.getSimulationTime()) < 600:
     #print(a.type)
     #print(a[0])
     #V = pred[0]
-    V = 0.45*a[0].item() + 0.55 # >> Constrain to [0.6 0.7] >> Complete space 0 -> 1  
+    V = 0.25*a[0].item() + 0.75 # >> Constrain to [0.6 0.7] >> Complete space 0 -> 1  
     #print(V)
     #omega = pred[1]
-    omega = 0.5*a[1].item()#Omega range : [-0.5 0.5]
-    print(V)
-    print(omega)
-    '''
+    omega = 0.6*a[1].item()#Omega range : [-0.5 0.5]
+    #print(V)
+    #print(omega)
+    
     ##################### <<< To Here
 
     
     ###### Generate control commands
-
+    '''
     p_gain = -0.01
 
     V = 0.5
@@ -234,6 +237,7 @@ while (t:= sim.getSimulationTime()) < 600:
     #print()
     print(omega)
     #print(omega.type)
+    '''
     
     ## Control map:
     # x_dot = [0.081675 0.081675; -0.1081 -0.1081] phi_dot
