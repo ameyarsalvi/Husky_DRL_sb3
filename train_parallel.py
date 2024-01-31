@@ -31,7 +31,7 @@ import os
 #log_dir = "/home/asalvi/code_workspace/tmp/log0"
 #os.makedirs(log_dir, exist_ok=True)
 
-tmp_path = "/home/asalvi/code_workspace/tmp/sb3_log/medium/"
+tmp_path = "/home/asalvi/code_workspace/tmp/sb3_log/test_seed/"
 # set up logger
 new_logger = configure(tmp_path, ["stdout", "csv", "tensorboard"])
 
@@ -98,7 +98,8 @@ def make_env(env_id, rank, seed=0):
     def _init():
         port_no = str(23004 + 2*rank)
         print(port_no)
-        env = gym.make(env_id, port = port_no)
+        seed = 5 + rank
+        env = gym.make(env_id, port = port_no,seed = seed)
         #env.seed(seed + rank)
         return env
     #set_random_seed(seed)

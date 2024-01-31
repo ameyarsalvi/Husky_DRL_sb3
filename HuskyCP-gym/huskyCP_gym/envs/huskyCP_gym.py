@@ -23,7 +23,7 @@ from coppeliasim_zmqremoteapi_client import RemoteAPIClient
 
 
 class HuskyCPEnv(Env):
-    def __init__(self,port):
+    def __init__(self,port,seed):
 
         #Initializing socket connection
         client = RemoteAPIClient('localhost',port)
@@ -33,6 +33,8 @@ class HuskyCPEnv(Env):
         self.sim.startSimulation()
         #while self.sim.getSimulationState() == self.sim.simulation_stopped:
         #    time.sleep(5)
+
+        self.seed = seed
 
         self.flw_vel = 0
 
@@ -306,7 +308,7 @@ class HuskyCPEnv(Env):
         pass
 
     def reset(self, seed=None):
-        super().reset(seed=seed)
+        super().reset(seed=self.seed)
 
         # Reset initialization variables
         self.centroid_buffer = []
