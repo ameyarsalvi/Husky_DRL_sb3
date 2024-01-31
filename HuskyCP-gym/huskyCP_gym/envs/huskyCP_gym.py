@@ -45,6 +45,8 @@ class HuskyCPEnv(Env):
         self.IMU = self.sim.getObject('/Accelerometer_forceSensor')
         self.COM = self.sim.getObject('/Husky')
         self.floor_cen = self.sim.getObject('/Floor')
+        self.t_a = 0
+        self.t_b = 0
 
         # Limits and definitions on Observation and action space
         
@@ -67,30 +69,6 @@ class HuskyCPEnv(Env):
         self.global_timesteps = 0
         self.log_error = []
         self.log_vel =[]
-        '''
-        #These are some declerations from Go to goal
-
-        # Linear and angular velocities
-        linear_vel = self.sim.getObjectVelocity(self.COM,self.sim.handle_world)
-        self.lin_velocity = linear_vel[0]
-        self.ang_velocity = self.sim.getFloatSignal("myGyroData_angZ")
-        # Robot position
-        bot_position = self.sim.getObjectPosition(self.COM,self.sim.handle_world)
-        self.bot_x_pos = bot_position[0]
-        self.bot_y_pos = bot_position[1]
-        # Get Origig (robot spawns/ resets here)
-        floor_position = self.sim.getObjectPosition(self.floor_cen,self.sim.handle_world)
-        self.floor_x_pos = floor_position[0]
-        self.floor_y_pos = floor_position[1]
-        # Eucledian Distance of the robot from origin
-        x_norm_origin = linalg.norm([self.floor_x_pos,self.bot_x_pos])
-        y_norm_origin = linalg.norm([self.floor_y_pos,self.bot_y_pos])
-        # Eucledian Distance of robot from goal
-        x_norm_goal = linalg.norm([self.floor_x_goal,self.bot_x_pos])
-        y_norm_goal = linalg.norm([self.floor_y_goal,self.bot_y_pos])
-        self.goal_dist = np.sum([x_norm_goal,y_norm_goal])
-        self.away = np.sum([x_norm_origin,y_norm_origin])
-        '''
 
     def step(self,action):
 
@@ -102,12 +80,88 @@ class HuskyCPEnv(Env):
         # A_low = np.array([[0.0701,0.0701],[-0.1351,0.1351]])
         # A_med = np.array([[0.0743,0.0743],[-0.1025,0.1025]])
         # A_high = np.array([[0.0825,0.0825],[-0.1122,0.1122]])
+     
         
-        #A = np.array([[0.0825,0.0825],[-0.1122,0.1122]])
-        A = np.array([[0.0743,0.0743],[-0.1025,0.1025]])
-        #V = 0.15*action[0] + 0.65 #V range : [0.5 0.8] 
-        V = 0.45*action[0] + 0.55 # >> Constrain to [0.6 0.7] >> Complete space 0 -> 1
-        omega = 0.5*action[1] #Omega range : [-0.5 0.5]
+        V = 0.25*action[0] + 0.75 
+        omega = 0.6*action[1] 
+
+        
+        # Ten condition
+        condtion = np.abs(omega)
+        if condtion > 0.55:
+            self.t_a = 0.5870
+            self.t_b = 2.5223
+        elif 0.5> condtion <=0.55:
+            self.t_a = 0.6
+            self.t_b = 2.3782
+        elif 0.45> condtion <=0.5:
+            self.t_a = 0.6356
+            self.t_b = 2.1620
+        elif 0.4> condtion <=0.45:
+            self.t_a = 0.6713
+            self.t_b = 1.9818
+        elif 0.35> condtion <=0.4:
+            self.t_a = 0.7070
+            self.t_b = 1.7656
+        elif 0.3> condtion <=0.35:
+            self.t_a = 0.7485
+            self.t_b = 1.5854
+        elif 0.25> condtion <=0.3:
+            self.t_a = 0.7975
+            self.t_b = 1.2972
+        elif 0.2> condtion <=0.25:
+            self.t_a = 0.8597
+            self.t_b = 1.0089
+        elif 0.15> condtion <=0.2:
+            self.t_a = 0.9214
+            self.t_b = 0.7207
+        elif 0.0 > condtion <= 0.15:
+            self.t_a = 0.9821
+            self.t_b = 0.3963
+        
+        '''
+          # Five condition
+        condtion = np.abs(omega)
+        if condtion > 0.4:
+            self.t_a = 0.5935
+            self.t_b = 2.4502
+        elif 0.3> condtion <=0.4:
+            self.t_a = 0.6355
+            self.t_b = 2.0719
+        elif 0.2> condtion <=0.3:
+            self.t_a = 0.7278
+            self.t_b = 1.6755
+        elif 0.1> condtion <=0.2:
+            self.t_a = 0.8286
+            self.t_b = 1.1531
+        elif 0.0 > condtion <= 0.1:
+            self.t_a = 0.9517
+            self.t_b = 0.5585
+        ''' 
+        
+        '''
+            
+          # Three condition
+        condtion = np.abs(omega)
+        if condtion > 0.4:
+            self.t_a = 0.6076
+            self.t_b = 2.3541
+        elif 0.2 > condtion <=0.4:
+            self.t_a = 0.7311
+            self.t_b = 1.6575
+        elif 0.0 > condtion <= 0.2:
+            self.t_a = 0.9210
+            self.t_b = 0.7086
+        '''
+
+        '''
+        # No condition
+        self.t_a = 0.7510
+        self.t_b = 1.5818
+        '''
+
+
+        A = np.array([[self.t_a*0.0825,self.t_a*0.0825],[-0.1486/self.t_b,0.1486/self.t_b]])
         velocity = np.array([V,omega])
         phi_dots = np.matmul(inv(A),velocity) #Inverse Kinematics
         phi_dots = phi_dots.astype(float)
@@ -155,18 +209,6 @@ class HuskyCPEnv(Env):
         else:
             cX, cY = 0, 0
     
-        
-        #This code is to plot centroid on the processed image and display it
-        # put text and highlight the center
-        #cv2.circle(crop_error, (cX, cY), 5, (255, 255, 255), -1)
-        #cv2.putText(crop_error, "centroid", (cX - 25, cY - 25),cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
-
-        #resize_img = cv2.resize(cropped_image  , (10 , 5))
-    
-        # display the image
-        #cv2.imshow("Image", crop_error)
-        #cv2.waitKey(1)
-        
 
 
         # Centering Error :
@@ -214,14 +256,14 @@ class HuskyCPEnv(Env):
         Rot = np.array([[sRb[0],sRb[1],sRb[2]],[sRb[4],sRb[5],sRb[6]],[sRb[8],sRb[9],sRb[10]]])
         vel_body = np.matmul(np.transpose(Rot),np.array([[linear_vel[0]],[linear_vel[1]],[linear_vel[2]]]))
         realized_vel = np.abs(-1*vel_body[2].item())
-        track_vel = 1
+        track_vel = 0.75
         err_vel = np.abs(track_vel - realized_vel)
         err_track = np.abs(self.error)
         if err_track > 125:
             err_track = 125   
         else:
             pass        
-        norm_err_vel = (err_vel - 0)/(0.9)
+        norm_err_vel = (err_vel - 0)/(0.5)
         norm_err_track = (err_track - 0)/125
         norm_err_step = (self.step_no -0)/5000
 
@@ -236,10 +278,10 @@ class HuskyCPEnv(Env):
         #reward = 1 - norm_err_track
         reward = np.float64(reward)
 
-        #self.log_error.append(err_track)
-        #savetxt('/home/asalvi/code_workspace/Husky_CS_SB3/csv_data/error.csv', self.log_error, delimiter=',')
-        #self.log_vel.append(realized_vel)
-        #savetxt('/home/asalvi/code_workspace/Husky_CS_SB3/csv_data/vel.csv', self.log_vel, delimiter=',')
+        self.log_error.append(err_track)
+        savetxt('/home/asalvi/code_workspace/Husky_CS_SB3/csv_data/ten_error.csv', self.log_error, delimiter=',')
+        self.log_vel.append(realized_vel)
+        savetxt('/home/asalvi/code_workspace/Husky_CS_SB3/csv_data/ten_vel.csv', self.log_vel, delimiter=',')
 
 
 
