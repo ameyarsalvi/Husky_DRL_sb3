@@ -28,10 +28,10 @@ import huskyCP_gym
 
 # Create log dir
 import os
-log_dir = "/home/asalvi/code_workspace/tmp/sb3_log/log2/logHS/"
-new_logger = configure(log_dir, ["stdout", "csv", "tensorboard"])
+tmp_path = "/home/asalvi/code_workspace/tmp/sb3_log/interim_checkpoints/ten_16/continual/"
+new_logger = configure(tmp_path, ["stdout", "csv", "tensorboard"])
 
-total_timesteps = 5e6
+total_timesteps = 1e7
 
 # Callback Definitions
 
@@ -49,7 +49,7 @@ class SaveOnBestTrainingRewardCallback(BaseCallback):
         super().__init__(verbose)
         self.check_freq = check_freq
         self.log_dir = log_dir
-        self.save_path = os.path.join(log_dir, "best_model_LS")
+        self.save_path = os.path.join(log_dir, "best")
         self.best_mean_reward = -np.inf
 
     def _init_callback(self) -> None:
@@ -94,7 +94,8 @@ def make_env(env_id, rank, seed=0):
     def _init():
         port_no = str(23004 + 2*rank)
         print(port_no)
-        env = gym.make(env_id, port = port_no)
+        seed = 5 + rank
+        env = gym.make(env_id, port = port_no,seed = seed)
         #env.seed(seed + rank)
         return env
     #set_random_seed(seed)
@@ -103,38 +104,29 @@ def make_env(env_id, rank, seed=0):
 
 if __name__ == '__main__':
     env_id = "huskyCP_gym/HuskyRL-v0"
-    num_cpu = 8  # Number of processes to use
+    num_cpu = 16  # Number of processes to use
     # Create the vectorized environment
     env = SubprocVecEnv([make_env(env_id, i) for i in range(num_cpu)], start_method='fork')
-    env = VecMonitor(env, filename=log_dir)
+    env = VecMonitor(env, filename=tmp_path)
     env = VecTransposeImage(env, skip=False)
-    
-    #env = make_vec_env(env_id, n_envs=num_cpu, vec_env_cls=SubprocVecEnv)
-    #env = VecNormalize(env, training=True, norm_obs=False, norm_reward=True, clip_obs=10.0, clip_reward=50.0, gamma=0.99, epsilon=1e-08, norm_obs_keys=None)
-    #env = VecFrameStack(env, n_stack=4) # This is an alternative to LSTM format
-    #env = stacked_observations.StackedObservations(num_envs= num_cpu, n_stack = 4,observation_space =[0,255], channels_order="last")
+    env = VecNormalize(env, training=True, norm_obs=False, norm_reward=True, clip_obs=10.0, clip_reward=1000.0, gamma=0.99, epsilon=1e-08, norm_obs_keys=None)
 
-    # Stable Baselines provides you with make_vec_env() helper
-    # which does exactly the previous steps for you:
-    # env = make_vec_env(env_id, n_envs=num_cpu, seed=0)
 
-    callback = SaveOnBestTrainingRewardCallback(check_freq=10000, log_dir=log_dir)
-
-    #checkpoint_callback = CheckpointCallback(save_freq=50000,save_path="/home/asalvi/temp_learn/checkpoints/",name_prefix="postHS",save_replay_buffer=True,save_vecnormalize=True)
-  # Using the followin best hyperparams
+    callback = SaveOnBestTrainingRewardCallback(check_freq=1000, log_dir=tmp_path)
+    checkpoint_callback = CheckpointCallback(save_freq=1e6,save_path="/home/asalvi/code_workspace/tmp/sb3_log/interim_checkpoints/ten_16/continual/",name_prefix="ten_16",save_replay_buffer=True,save_vecnormalize=True)
     '''
     model = PPO("CnnPolicy", env,learning_rate=0.001, n_steps=256, batch_size=256, n_epochs=5, ent_coef= 0.01, gamma=0.99, gae_lambda=0.99,
                 clip_range=0.1, vf_coef=0.75, max_grad_norm=1.0,sde_sample_freq=16, 
                 policy_kwargs=dict(normalize_images=False, log_std_init=-2.0,ortho_init=False, activation_fn=nn.Tanh, net_arch=dict(pi=[64], vf=[64])), 
                 verbose=1, tensorboard_log=tmp_path)
     '''
-    model = PPO.load("test.zip", env=env, print_system_info=True)
+    model = PPO.load("/home/asalvi/code_workspace/tmp/sb3_log/interim_checkpoints/ten_16/ten_16_final.zip", env=env, print_system_info=True)
 
     model.set_logger(new_logger)
-    model.learn(total_timesteps, callback=callback, progress_bar= True)
-    model.save("HuskyVS_low10mil_tes2")
+    model.learn(total_timesteps, callback=[callback,checkpoint_callback], progress_bar= True)
+    model.save("/home/asalvi/code_workspace/tmp/sb3_log/interim_checkpoints/ten_16/continual/ten_16_final")
 
     obs = env.reset()
-    for _ in range(1000):
-        action, _states = model.predict(obs)
-        obs, rewards, dones, info = env.step(action)
+    #for _ in range(100):
+    #    action, _states = model.predict(obs)
+    #    obs, rewards, dones, info = env.step(action)

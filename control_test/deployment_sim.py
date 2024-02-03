@@ -17,7 +17,7 @@ import torch
 #from torch import Model # Made up package
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-model = PPO.load("/home/asalvi/Downloads/logs_br/log_single/best_model_parallel_VS.zip", device='cuda')
+model = PPO.load("/home/asalvi/Downloads/jan31/ten_32/HuskyVSten32.zip", device='cuda')
 
 from coppeliasim_zmqremoteapi_client import RemoteAPIClient
 
@@ -87,13 +87,18 @@ while (t:= sim.getSimulationTime()) < 600:
     img, resX, resY = sim.getVisionSensorCharImage(visionSensorHandle)
     img = np.frombuffer(img, dtype=np.uint8).reshape(resY, resX, 3)
     img = cv2.flip(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), 0) #Convert to Grayscale
+    cv2.imshow("Original", img)
     cropped_image = img[288:480, 192:448] # Crop image to only to relevant path data (Done heuristically)
     crop_error = img[400:480, 192:448] # Crop image to only to relevant path data (Done heuristically)
+    cv2.imshow("Crop & gray", cropped_image)
     im_bw = cv2.threshold(cropped_image, 125, 255, cv2.THRESH_BINARY)[1]  # convert the grayscale image to binary image
+    cv2.imshow("Binary Thresh", cropped_image)
     noise = np.random.normal(0, 25, im_bw.shape).astype(np.uint8)
     noisy_image = cv2.add(im_bw, noise)
+    cv2.imshow("Add noise", noisy_image)
     im_bw = np.frombuffer(noisy_image, dtype=np.uint8).reshape(192, 256, 1) # Reshape to required observation size
     im_bw_obs = ~im_bw
+    cv2.imshow("Invert", im_bw_obs)
 
     #Calcuation of centroid for lane centering
     crop_error = ~crop_error
@@ -121,6 +126,8 @@ while (t:= sim.getSimulationTime()) < 600:
     im_bw = np.frombuffer(noisy_image, dtype=np.uint8).reshape(192, 256, 1)
     im_bw =~im_bw
     inputs = np.array(im_bw,dtype = np.uint8)
+    cv2.imshow("Inputs", inputs)
+    cv2.waitKey(1)
 
     observation_size = model.observation_space.shape
 
@@ -155,8 +162,8 @@ while (t:= sim.getSimulationTime()) < 600:
     phi_dots = np.matmul(inv(A),velocity)
 
     phi_dots = phi_dots.astype(float)
-    Left = phi_dots[0].item()
-    Right = phi_dots[1].item()
+    Left = 0*phi_dots[0].item()
+    Right = 0*phi_dots[1].item()
     
 
 

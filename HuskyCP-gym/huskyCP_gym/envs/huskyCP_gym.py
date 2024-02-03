@@ -69,8 +69,15 @@ class HuskyCPEnv(Env):
         self.episode_length = 5000
         self.step_no = 0
         self.global_timesteps = 0
-        self.log_error = []
-        self.log_vel =[]
+        self.z_ang = []
+        #log variables
+        self.log_err_feat = []
+        self.log_err_vel = []
+        self.log_err_feat_norm = []
+        self.log_err_vel_norm = []
+        self.log_rel_vel_lin = []
+        self.log_rel_vel_ang = []
+
 
     def step(self,action):
 
@@ -121,6 +128,7 @@ class HuskyCPEnv(Env):
             self.t_a = 0.9821
             self.t_b = 0.3963
         
+        
         '''
           # Five condition
         condtion = np.abs(omega)
@@ -139,7 +147,7 @@ class HuskyCPEnv(Env):
         elif 0.0 > condtion <= 0.1:
             self.t_a = 0.9517
             self.t_b = 0.5585
-        ''' 
+        '''
         
         '''
             
@@ -155,6 +163,7 @@ class HuskyCPEnv(Env):
             self.t_a = 0.9210
             self.t_b = 0.7086
         '''
+        
 
         '''
         # No condition
@@ -269,6 +278,10 @@ class HuskyCPEnv(Env):
         norm_err_track = (err_track - 0)/125
         norm_err_step = (self.step_no -0)/5000
 
+        Gyro_Z = self.sim.getFloatSignal("myGyroData_angZ")
+        if Gyro_Z:
+            self.z_ang.append(Gyro_Z)
+
         #Pretraining 
         #omega_des = -0.05*self.error
         #act_error = omega_des - omega
@@ -280,12 +293,29 @@ class HuskyCPEnv(Env):
         #reward = 1 - norm_err_track
         reward = np.float64(reward)
 
-        self.log_error.append(err_track)
-        savetxt('/home/asalvi/code_workspace/Husky_CS_SB3/csv_data/ten_error.csv', self.log_error, delimiter=',')
-        self.log_vel.append(realized_vel)
-        savetxt('/home/asalvi/code_workspace/Husky_CS_SB3/csv_data/ten_vel.csv', self.log_vel, delimiter=',')
+        
 
+        '''
+        #Comment in/out depending on training or evaluation
+        
+        ### Data logging
 
+        path = '/home/asalvi/code_workspace/Husky_CS_SB3/csv_data/ten_16/10_mil/'
+        self.log_err_feat.append(err_track)
+        savetxt(path +'single_err_feat.csv', self.log_err_feat, delimiter=',')
+        self.log_err_vel.append(err_vel)
+        savetxt(path +'single_err_vel.csv', self.log_err_vel, delimiter=',')
+        self.log_err_feat_norm.append(norm_err_track)
+        savetxt(path +'single_err_feat_norm.csv', self.log_err_feat_norm, delimiter=',')
+        self.log_err_vel_norm.append(norm_err_vel)
+        savetxt(path +'single_err_vel_norm.csv', self.log_err_vel_norm, delimiter=',')
+
+        self.log_rel_vel_lin.append(realized_vel)
+        savetxt(path + 'single_rel_vel_lin.csv', self.log_rel_vel_lin, delimiter=',')
+        self.log_rel_vel_ang.append(Gyro_Z)
+        savetxt(path + 'single_rel_vel_ang.csv', self.log_rel_vel_ang, delimiter=',')
+        '''
+        
 
         # Check for reset conditions
         # Removing episode length termination from reset condition
@@ -314,6 +344,7 @@ class HuskyCPEnv(Env):
         self.centroid_buffer = []
         self.episode_length = 5000
         self.step_no = 0
+        self.z_ang = []
 
         self.sim.stopSimulation()
         while self.sim.getSimulationState() != self.sim.simulation_stopped:

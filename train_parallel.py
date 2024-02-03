@@ -31,11 +31,11 @@ import os
 #log_dir = "/home/asalvi/code_workspace/tmp/log0"
 #os.makedirs(log_dir, exist_ok=True)
 
-tmp_path = "/home/asalvi/code_workspace/tmp/sb3_log/test_seed/"
+tmp_path = "/home/asalvi/code_workspace/tmp/sb3_log/interim_checkpoints/ten_16/"
 # set up logger
 new_logger = configure(tmp_path, ["stdout", "csv", "tensorboard"])
 
-total_timesteps = 5e6
+total_timesteps = 1e7
 
 # Callback Definitions
 
@@ -108,34 +108,26 @@ def make_env(env_id, rank, seed=0):
 
 if __name__ == '__main__':
     env_id = "huskyCP_gym/HuskyRL-v0"
-    num_cpu = 8  # Number of processes to use
+    num_cpu = 16  # Number of processes to use
     # Create the vectorized environment
     env = SubprocVecEnv([make_env(env_id, i) for i in range(num_cpu)], start_method='fork')
     env = VecMonitor(env, filename=tmp_path)
     env = VecTransposeImage(env, skip=False)
-    
-    #env = make_vec_env(env_id, n_envs=num_cpu, vec_env_cls=SubprocVecEnv)
-    #env = VecNormalize(env, training=True, norm_obs=False, norm_reward=True, clip_obs=10.0, clip_reward=50.0, gamma=0.99, epsilon=1e-08, norm_obs_keys=None)
-    #env = VecFrameStack(env, n_stack=4) # This is an alternative to LSTM format
-    #env = stacked_observations.StackedObservations(num_envs= num_cpu, n_stack = 4,observation_space =[0,255], channels_order="last")
+    env = VecNormalize(env, training=True, norm_obs=False, norm_reward=True, clip_obs=10.0, clip_reward=1000.0, gamma=0.99, epsilon=1e-08, norm_obs_keys=None)
 
-    # Stable Baselines provides you with make_vec_env() helper
-    # which does exactly the previous steps for you:
-    # env = make_vec_env(env_id, n_envs=num_cpu, seed=0)
 
     callback = SaveOnBestTrainingRewardCallback(check_freq=1000, log_dir=tmp_path)
+    checkpoint_callback = CheckpointCallback(save_freq=1e6,save_path="/home/asalvi/code_workspace/tmp/sb3_log/interim_checkpoints/ten_16/",name_prefix="ten_16",save_replay_buffer=True,save_vecnormalize=True)
 
-    #checkpoint_callback = CheckpointCallback(save_freq=50000,save_path="/home/asalvi/code_workspace/tmp/sb3_log/checkpoints2/",name_prefix="test",save_replay_buffer=True,save_vecnormalize=True)
-  # Using the followin best hyperparams
 
-    model = PPO("CnnPolicy", env,learning_rate=0.001, n_steps=256, batch_size=256, n_epochs=5, ent_coef= 0.01, gamma=0.99, gae_lambda=0.99,
-                clip_range=0.1, vf_coef=0.75, max_grad_norm=1.0,sde_sample_freq=16, 
-                policy_kwargs=dict(normalize_images=False, log_std_init=-2.0,ortho_init=False, activation_fn=nn.Tanh, net_arch=dict(pi=[64], vf=[64])), 
+    model = PPO("CnnPolicy", env,learning_rate=0.00001, n_steps=256, batch_size=256, n_epochs=5, ent_coef= 0.005, gamma=0.98, gae_lambda=0.98,
+                clip_range=0.1, vf_coef=0.5, max_grad_norm=0.5,sde_sample_freq=16, 
+                policy_kwargs=dict(normalize_images=False, log_std_init=-1.0,ortho_init=False, activation_fn=nn.ReLU, net_arch=dict(pi=[64], vf=[64])), 
                 verbose=1, tensorboard_log=tmp_path)
     
     model.set_logger(new_logger)
     model.learn(total_timesteps, callback=callback, progress_bar= True)
-    model.save("/home/asalvi/code_workspace/tmp/sb3_log/medium/HuskyVS")
+    model.save("/home/asalvi/code_workspace/tmp/sb3_log/interim_checkpoints/ten_16/ten_16_final")
 
     obs = env.reset()
     for _ in range(1000):
