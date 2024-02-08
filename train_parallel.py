@@ -31,8 +31,9 @@ import os
 #log_dir = "/home/asalvi/code_workspace/tmp/log0"
 #os.makedirs(log_dir, exist_ok=True)
 
-tmp_path = "/home/asalvi/code_workspace/tmp/sb3_log/interim_checkpoints/ten_16/"
+tmp_path = "/home/asalvi/code_workspace/tmp/sb3_log/DR_trial/"
 # set up logger
+os.makedirs(tmp_path, exist_ok=True)
 new_logger = configure(tmp_path, ["stdout", "csv", "tensorboard"])
 
 total_timesteps = 1e7
@@ -116,8 +117,8 @@ if __name__ == '__main__':
     env = VecNormalize(env, training=True, norm_obs=False, norm_reward=True, clip_obs=10.0, clip_reward=1000.0, gamma=0.99, epsilon=1e-08, norm_obs_keys=None)
 
 
-    callback = SaveOnBestTrainingRewardCallback(check_freq=1000, log_dir=tmp_path)
-    checkpoint_callback = CheckpointCallback(save_freq=1e6,save_path="/home/asalvi/code_workspace/tmp/sb3_log/interim_checkpoints/ten_16/",name_prefix="ten_16",save_replay_buffer=True,save_vecnormalize=True)
+    callback = SaveOnBestTrainingRewardCallback(check_freq=156250, log_dir=tmp_path)
+    checkpoint_callback = CheckpointCallback(save_freq=1e6,save_path= tmp_path + "checkpoints/", name_prefix="DR",save_replay_buffer=True,save_vecnormalize=True)
 
 
     model = PPO("CnnPolicy", env,learning_rate=0.00001, n_steps=256, batch_size=256, n_epochs=5, ent_coef= 0.005, gamma=0.98, gae_lambda=0.98,
@@ -127,9 +128,9 @@ if __name__ == '__main__':
     
     model.set_logger(new_logger)
     model.learn(total_timesteps, callback=callback, progress_bar= True)
-    model.save("/home/asalvi/code_workspace/tmp/sb3_log/interim_checkpoints/ten_16/ten_16_final")
+    model.save( tmp_path + "ten_16_final")
 
-    obs = env.reset()
-    for _ in range(1000):
-        action, _states = model.predict(obs)
-        obs, rewards, dones, info = env.step(action)
+    #obs = env.reset()
+    #for _ in range(1000):
+    #    action, _states = model.predict(obs)
+    #    obs, rewards, dones, info = env.step(action)

@@ -9,6 +9,7 @@ import torch
 import cv2
 from numpy.linalg import inv
 from numpy import savetxt
+import pickle
 
 
 import os
@@ -77,6 +78,8 @@ class HuskyCPEnv(Env):
         self.log_err_vel_norm = []
         self.log_rel_vel_lin = []
         self.log_rel_vel_ang = []
+        self.log_actV = []
+        self.log_actW = []
 
 
     def step(self,action):
@@ -91,10 +94,23 @@ class HuskyCPEnv(Env):
         # A_high = np.array([[0.0825,0.0825],[-0.1122,0.1122]])
      
         
-        V = 0.25*action[0] + 0.75 
-        omega = 0.6*action[1] 
+        #V = 0.25*action[0] + 0.75 
+        #print(action[0].item())
+        V = 0.25*action[0] + 0.75
+        omega = 0.6*action[1]
 
         
+
+        '''
+        path = '/home/asalvi/code_workspace/Husky_CS_SB3/csv_data/heat_map/all_final/'
+        specifier = 'ten'
+        self.log_actV .append(V)
+        savetxt(path + specifier + '_actV3.csv', self.log_rel_vel_lin, delimiter=',')
+        self.log_actV.append(omega)
+        savetxt(path + specifier + '_actW2.csv', self.log_rel_vel_ang, delimiter=',')
+        '''
+        
+        '''
         # Ten condition
         condtion = np.abs(omega)
         if condtion > 0.55:
@@ -127,7 +143,7 @@ class HuskyCPEnv(Env):
         elif 0.0 > condtion <= 0.15:
             self.t_a = 0.9821
             self.t_b = 0.3963
-        
+        '''
         
         '''
           # Five condition
@@ -149,8 +165,8 @@ class HuskyCPEnv(Env):
             self.t_b = 0.5585
         '''
         
+        
         '''
-            
           # Three condition
         condtion = np.abs(omega)
         if condtion > 0.4:
@@ -162,14 +178,19 @@ class HuskyCPEnv(Env):
         elif 0.0 > condtion <= 0.2:
             self.t_a = 0.9210
             self.t_b = 0.7086
-        '''
         
+        '''
 
         '''
         # No condition
         self.t_a = 0.7510
         self.t_b = 1.5818
         '''
+        
+        # DR
+        self.t_a = 0.7510 + np.random.normal(0, 0.035, 1).item()
+        self.t_b = 1.5818 + np.random.normal(0, 0.085, 1).item()
+        
 
 
         A = np.array([[self.t_a*0.0825,self.t_a*0.0825],[-0.1486/self.t_b,0.1486/self.t_b]])
@@ -269,6 +290,7 @@ class HuskyCPEnv(Env):
         realized_vel = np.abs(-1*vel_body[2].item())
         track_vel = 0.75
         err_vel = np.abs(track_vel - realized_vel)
+        err_vel = np.clip(err_vel,0,0.5)
         err_track = np.abs(self.error)
         if err_track > 125:
             err_track = 125   
@@ -294,26 +316,65 @@ class HuskyCPEnv(Env):
         reward = np.float64(reward)
 
         
-
-        '''
+        #self.log_err_feat = err_track.tolist()
+        
         #Comment in/out depending on training or evaluation
         
         ### Data logging
+        
+        path = '/home/asalvi/code_workspace/Husky_CS_SB3/csv_data/heat_map/all_final/'
+        specifier = 'three'
 
-        path = '/home/asalvi/code_workspace/Husky_CS_SB3/csv_data/ten_16/10_mil/'
+        '''
         self.log_err_feat.append(err_track)
-        savetxt(path +'single_err_feat.csv', self.log_err_feat, delimiter=',')
+        savetxt(path + specifier + '_err_feat.csv', self.log_err_feat, delimiter=',')
         self.log_err_vel.append(err_vel)
-        savetxt(path +'single_err_vel.csv', self.log_err_vel, delimiter=',')
+        savetxt(path + specifier + '_err_vel.csv', self.log_err_vel, delimiter=',')
         self.log_err_feat_norm.append(norm_err_track)
-        savetxt(path +'single_err_feat_norm.csv', self.log_err_feat_norm, delimiter=',')
+        savetxt(path + specifier + '_err_feat_norm.csv', self.log_err_feat_norm, delimiter=',')
         self.log_err_vel_norm.append(norm_err_vel)
-        savetxt(path +'single_err_vel_norm.csv', self.log_err_vel_norm, delimiter=',')
+        savetxt(path + specifier + '_err_vel_norm.csv', self.log_err_vel_norm, delimiter=',')
 
         self.log_rel_vel_lin.append(realized_vel)
-        savetxt(path + 'single_rel_vel_lin.csv', self.log_rel_vel_lin, delimiter=',')
+        savetxt(path + specifier + '_rel_vel_lin.csv', self.log_rel_vel_lin, delimiter=',')
         self.log_rel_vel_ang.append(Gyro_Z)
-        savetxt(path + 'single_rel_vel_ang.csv', self.log_rel_vel_ang, delimiter=',')
+        savetxt(path + specifier + '_rel_vel_ang.csv', self.log_rel_vel_ang, delimiter=',')
+        
+        
+        
+        
+        self.log_err_feat.append(err_track)
+        with open(path + specifier + "_err_feat", "wb") as fp:   #Pickling
+            pickle.dump(self.log_actV, fp)
+        
+        self.log_err_feat_norm.append(norm_err_track)
+        with open(path + specifier + "_err_feat_norm", "wb") as fp:   #Pickling
+            pickle.dump(self.log_err_feat_norm, fp)
+
+        self.log_err_vel.append(err_vel)
+        with open(path + specifier + "_err_vel", "wb") as fp:   #Pickling
+            pickle.dump(self.log_err_vel, fp)
+
+        self.log_err_vel_norm.append(norm_err_vel)
+        with open(path + specifier + "_err_vel_norm", "wb") as fp:   #Pickling
+            pickle.dump(self.log_err_vel_norm, fp)
+        
+        self.log_rel_vel_lin.append(realized_vel)
+        with open(path + specifier + "_rel_vel_lin", "wb") as fp:   #Pickling
+            pickle.dump(self.log_rel_vel_lin, fp)
+        
+        self.log_rel_vel_ang.append(Gyro_Z)
+        with open(path + specifier + "_rel_vel_ang", "wb") as fp:   #Pickling
+            pickle.dump(self.log_rel_vel_ang, fp)
+
+        self.log_actV .append(V)
+        with open(path + specifier + "_actV", "wb") as fp:   #Pickling
+            pickle.dump(self.log_actV, fp)
+        
+        self.log_actW.append(omega)
+        with open(path + specifier + "_actW", "wb") as fp:   #Pickling
+            pickle.dump(self.log_actW, fp)
+        
         '''
         
 

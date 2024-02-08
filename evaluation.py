@@ -20,15 +20,40 @@ import os
 eval_log_dir = "/home/asalvi/code_workspace/tmp/eval/"
 os.makedirs(eval_log_dir, exist_ok=True)
 
+'''
+class GetEnvVar(BaseCallback):
+    """
+    Custom callback for plotting additional values in tensorboard.
+    """
+
+    def __init__(self, verbose=0):
+        super().__init__(verbose)
+        #self.training_env = env
+
+    def _on_step(self) -> bool:
+        # Log scalar value (here a random variable)
+        value = self.get_attr('self.log_err_feat')
+        #self.logger.record("random_value", value)
+        print(value)
+        return value
+'''   
+
 # Create environment
 env = gym.make("huskyCP_gym/HuskyRL-v0",port=23002,seed=16)
 env = Monitor(env, eval_log_dir)
+#value = env.unwrapped.get_attr('self.log_err_feat')
+#print(value)
+
 
 # Load the trained agent
 # NOTE: if you have loading issue, you can pass `print_system_info=True'
 # to compare the system on which the model was trained vs the current one
 #model = PPO.load("/home/asalvi/code_workspace/tmp/sb3_log/log2/logHS/best_model_parallel_VS.zip", env=env, print_system_info=True)
-model = PPO.load("/home/asalvi/code_workspace/tmp/sb3_log/interim_checkpoints/ten_16/ten_16_final.zip", env=env, print_system_info=True)
+model = PPO.load("/home/asalvi/Downloads/feb3/three_32/HuskyVSthree32.zip", env=env, print_system_info=True)
+
+#callback = GetEnvVar()
+#value = callback._on_step()
+#print(value)
 
 
 # Evaluate the agent
@@ -36,4 +61,4 @@ model = PPO.load("/home/asalvi/code_workspace/tmp/sb3_log/interim_checkpoints/te
 #       this will be reflected here. To evaluate with original rewards,
 #       wrap environment in a "Monitor" wrapper before other wrappers.
 
-mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=100, deterministic = False)
+mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=3, deterministic = True)
