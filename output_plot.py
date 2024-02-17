@@ -4,7 +4,7 @@ import pickle
 
 
 '''
-Format:
+Format (CSV):
 
 varA = np.genfromtxt("pathA")
 varB = np.genfromtxt("pathB")
@@ -15,9 +15,22 @@ plt.plot(varB)
 
 plt.show()
 
+Format (Pickle):
+
+with open("pathA", "rb") as fp:   # Unpickling
+    varA = pickle.load(fp)
+
+plt.figure("Name")
+plt.plot(varA)
+
+plt.show()
+
 '''
-path = '/home/asalvi/code_workspace/Husky_CS_SB3/csv_data/heat_map/all_final/'
-specifier = 'three'
+
+
+path = '/home/asalvi/code_workspace/Husky_CS_SB3/csv_data/vel_smth/'
+specifier = 'vp_75'
+
 
 with open(path + specifier + "_actV", "rb") as fp:   # Unpickling
     V = pickle.load(fp)
@@ -35,14 +48,9 @@ with open(path + specifier+ "_err_feat_norm", "rb") as fp:   # Unpickling
 with open(path + specifier+ "_rel_vel_lin", "rb") as fp:   # Unpickling
     rel_V = pickle.load(fp)
 
+with open(path + specifier+ "_err_feat", "rb") as fp:   # Unpickling
+    feat_tr = pickle.load(fp)
 
-'''
-
-V = np.genfromtxt("/home/asalvi/code_workspace/Husky_CS_SB3/csv_data/heat_map/all_final/ten_actV.csv")
-omega = np.genfromtxt("/home/asalvi/code_workspace/Husky_CS_SB3/csv_data/heat_map/all_final/ten_actW.csv")
-V2 = np.genfromtxt("/home/asalvi/code_workspace/Husky_CS_SB3/csv_data/heat_map/all_final/ten_actV3.csv")
-omega2 = np.genfromtxt("/home/asalvi/code_workspace/Husky_CS_SB3/csv_data/heat_map/all_final/ten_actW2.csv")
-'''
 
 
 f1 = plt.figure("Actions")
@@ -66,7 +74,30 @@ print(np.shape(err_Fn))
 print(np.shape(err_Vn))
 
 f3 = plt.figure("Vel")
-plt.plot(rel_V)
-#f3.show()
+plt.plot(rel_V[250:750])
+
+f4 = plt.figure("feat_tr")
+plt.plot(feat_tr[250:750])
+
+
+fig5, axs= plt.subplots(2, 2)
+fig5.suptitle('Model Output : Vp75')
+
+#plt state : Realized lin vel
+axs[0,0].plot(rel_V)
+axs[0,0].set(ylabel='Linear Velocity')
+
+#plt state : Feat track err
+axs[0,1].plot(feat_tr)
+axs[0,1].set(ylabel='Lane Center')
+
+#plt state : Actions
+axs[1,0].plot(V)
+axs[1,0].plot(omega)
+axs[1,0].set(ylabel='Actions')
+
+#plt state : Normalized Tracing err
+axs[1,1].plot(err_Fn)
+axs[1,1].plot(err_Vn)
 
 plt.show()

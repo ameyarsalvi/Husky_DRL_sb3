@@ -39,17 +39,20 @@ class GetEnvVar(BaseCallback):
 '''   
 
 # Create environment
-env = gym.make("huskyCP_gym/HuskyRL-v0",port=23002,seed=16)
+env = gym.make("huskyCP_gym/HuskyRL-v0",port=23002,seed=1,track_vel = 0.75)
 env = Monitor(env, eval_log_dir)
 #value = env.unwrapped.get_attr('self.log_err_feat')
 #print(value)
 
-
+#model_path = "/home/asalvi/Downloads/velocity/vel_p65.zip"
+model_path = '/home/asalvi/Downloads/velocity/vel_p95.zip'
 # Load the trained agent
 # NOTE: if you have loading issue, you can pass `print_system_info=True'
 # to compare the system on which the model was trained vs the current one
 #model = PPO.load("/home/asalvi/code_workspace/tmp/sb3_log/log2/logHS/best_model_parallel_VS.zip", env=env, print_system_info=True)
-model = PPO.load("/home/asalvi/Downloads/feb3/three_32/HuskyVSthree32.zip", env=env, print_system_info=True)
+model = PPO.load(model_path, env=env, print_system_info=True)
+
+# '/home/asalvi/Downloads/feb3/single_32/HuskyVSsingle32.zip'
 
 #callback = GetEnvVar()
 #value = callback._on_step()
@@ -61,4 +64,5 @@ model = PPO.load("/home/asalvi/Downloads/feb3/three_32/HuskyVSthree32.zip", env=
 #       this will be reflected here. To evaluate with original rewards,
 #       wrap environment in a "Monitor" wrapper before other wrappers.
 
-mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=3, deterministic = True)
+mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=10, deterministic = True)
+obs = env.reset()

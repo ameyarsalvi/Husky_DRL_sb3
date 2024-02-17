@@ -24,7 +24,7 @@ from coppeliasim_zmqremoteapi_client import RemoteAPIClient
 
 
 class HuskyCPEnv(Env):
-    def __init__(self,port,seed):
+    def __init__(self,port,seed,track_vel):
 
         #Initializing socket connection
         client = RemoteAPIClient('localhost',port)
@@ -36,6 +36,7 @@ class HuskyCPEnv(Env):
         #    time.sleep(5)
 
         self.seed = seed
+        self.track_vel = track_vel
 
         self.flw_vel = 0
 
@@ -80,6 +81,8 @@ class HuskyCPEnv(Env):
         self.log_rel_vel_ang = []
         self.log_actV = []
         self.log_actW = []
+        self.log_err_omega = []
+        self.log_err_omega_norm = []
 
 
     def step(self,action):
@@ -181,16 +184,16 @@ class HuskyCPEnv(Env):
         
         '''
 
-        '''
+        
         # No condition
         self.t_a = 0.7510
         self.t_b = 1.5818
-        '''
         
+        '''
         # DR
         self.t_a = 0.7510 + np.random.normal(0, 0.035, 1).item()
         self.t_b = 1.5818 + np.random.normal(0, 0.085, 1).item()
-        
+        '''
 
 
         A = np.array([[self.t_a*0.0825,self.t_a*0.0825],[-0.1486/self.t_b,0.1486/self.t_b]])
@@ -288,17 +291,19 @@ class HuskyCPEnv(Env):
         Rot = np.array([[sRb[0],sRb[1],sRb[2]],[sRb[4],sRb[5],sRb[6]],[sRb[8],sRb[9],sRb[10]]])
         vel_body = np.matmul(np.transpose(Rot),np.array([[linear_vel[0]],[linear_vel[1]],[linear_vel[2]]]))
         realized_vel = np.abs(-1*vel_body[2].item())
-        track_vel = 0.75
+        track_vel = self.track_vel ## << -- study update
         err_vel = np.abs(track_vel - realized_vel)
         err_vel = np.clip(err_vel,0,0.5)
         err_track = np.abs(self.error)
         if err_track > 125:
             err_track = 125   
         else:
-            pass        
+            pass
+        err_effort = np.abs(omega)     
         norm_err_vel = (err_vel - 0)/(0.5)
         norm_err_track = (err_track - 0)/125
         norm_err_step = (self.step_no -0)/5000
+        norm_err_eff = (err_effort)/0.6
 
         Gyro_Z = self.sim.getFloatSignal("myGyroData_angZ")
         if Gyro_Z:
@@ -310,7 +315,7 @@ class HuskyCPEnv(Env):
         #norm_act_error = (act_error + 1 )/2
         #reward = (1 - norm_act_error)**2
 
-        reward = (1 - norm_err_track)**2 + (1 - norm_err_vel)**2
+        reward = (1 - norm_err_track)**2 + (1 - norm_err_vel)**2 +(1- norm_err_eff)**2
         #reward = np.float64(reward)
         #reward = 1 - norm_err_track
         reward = np.float64(reward)
@@ -322,8 +327,8 @@ class HuskyCPEnv(Env):
         
         ### Data logging
         
-        path = '/home/asalvi/code_workspace/Husky_CS_SB3/csv_data/heat_map/all_final/'
-        specifier = 'three'
+        path = '/home/asalvi/code_workspace/Husky_CS_SB3/csv_data/vel_perf_all/'
+        specifier = 'vp_' + str(int(100*self.track_vel))
 
         '''
         self.log_err_feat.append(err_track)
@@ -339,13 +344,13 @@ class HuskyCPEnv(Env):
         savetxt(path + specifier + '_rel_vel_lin.csv', self.log_rel_vel_lin, delimiter=',')
         self.log_rel_vel_ang.append(Gyro_Z)
         savetxt(path + specifier + '_rel_vel_ang.csv', self.log_rel_vel_ang, delimiter=',')
-        
+        '''
         
         
         
         self.log_err_feat.append(err_track)
         with open(path + specifier + "_err_feat", "wb") as fp:   #Pickling
-            pickle.dump(self.log_actV, fp)
+            pickle.dump(self.log_err_feat, fp)
         
         self.log_err_feat_norm.append(norm_err_track)
         with open(path + specifier + "_err_feat_norm", "wb") as fp:   #Pickling
@@ -357,6 +362,14 @@ class HuskyCPEnv(Env):
 
         self.log_err_vel_norm.append(norm_err_vel)
         with open(path + specifier + "_err_vel_norm", "wb") as fp:   #Pickling
+            pickle.dump(self.log_err_vel_norm, fp)
+
+        self.log_err_omega.append(err_effort)
+        with open(path + specifier + "_err_omega", "wb") as fp:   #Pickling
+            pickle.dump(self.log_err_vel, fp)
+
+        self.log_err_omega_norm.append(norm_err_eff)
+        with open(path + specifier + "_err_omega_norm", "wb") as fp:   #Pickling
             pickle.dump(self.log_err_vel_norm, fp)
         
         self.log_rel_vel_lin.append(realized_vel)
@@ -375,7 +388,7 @@ class HuskyCPEnv(Env):
         with open(path + specifier + "_actW", "wb") as fp:   #Pickling
             pickle.dump(self.log_actW, fp)
         
-        '''
+        
         
 
         # Check for reset conditions
