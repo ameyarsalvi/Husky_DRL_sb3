@@ -23,6 +23,7 @@ from stable_baselines3.common.utils import set_random_seed
 
 import sys
 sys.path.insert(0, "/home/asalvi/code_workspace/Husky_CS_SB3/train/HuskyCP-gym")
+#import huskyCP_gym
 import huskyCP_gym
 
 
@@ -31,12 +32,12 @@ import os
 #log_dir = "/home/asalvi/code_workspace/tmp/log0"
 #os.makedirs(log_dir, exist_ok=True)
 
-tmp_path = "/home/asalvi/code_workspace/tmp/sb3_log/DR_trial/"
+tmp_path = "/home/asalvi/code_workspace/tmp/sb3_log/DR_trial/vids/"
 # set up logger
 os.makedirs(tmp_path, exist_ok=True)
 new_logger = configure(tmp_path, ["stdout", "csv", "tensorboard"])
 
-total_timesteps = 1e7
+total_timesteps = 5000
 
 # Callback Definitions
 
@@ -100,7 +101,7 @@ def make_env(env_id, rank, seed=0):
         port_no = str(23004 + 2*rank)
         print(port_no)
         seed = 5 + rank
-        env = gym.make(env_id, port = port_no,seed = seed)
+        env = gym.make(env_id, port = port_no,seed = seed,track_vel = 0.75)
         #env.seed(seed + rank)
         return env
     #set_random_seed(seed)

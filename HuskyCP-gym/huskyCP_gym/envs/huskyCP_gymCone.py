@@ -23,7 +23,7 @@ from coppeliasim_zmqremoteapi_client import RemoteAPIClient
 
 
 
-class HuskyCPEnv(Env):
+class HuskyCPEnvCone(Env):
     def __init__(self,port,seed,track_vel):
 
         #Initializing socket connection
@@ -59,7 +59,7 @@ class HuskyCPEnv(Env):
 
         # Observation shape definition : [Image pixels of size 64x256x1]
         #self.observation_space = Box(low=np.array([[-1000],[-1000],[-1000],[-1000]]), high=np.array([[1000],[1000],[1000],[1000]]),dtype=np.float32)
-        self.observation_space = Box(low=0, high=255,shape=(192,256,1),dtype=np.uint8)
+        self.observation_space = Box(low=0, high=255,shape=(192,640,1),dtype=np.uint8)
         
 
         # Initial decleration of variables
@@ -86,19 +86,9 @@ class HuskyCPEnv(Env):
 
 
     def step(self,action):
-
-        
+ 
      
         # Take Action
-        ## Control map: (Please keep this code to know what control matrix for inverse kinematics)
-        # x_dot = [0.081675 0.081675; -0.1081 -0.1081] phi_dot
-        # A_low = np.array([[0.0701,0.0701],[-0.1351,0.1351]])
-        # A_med = np.array([[0.0743,0.0743],[-0.1025,0.1025]])
-        # A_high = np.array([[0.0825,0.0825],[-0.1122,0.1122]])
-     
-        
-        #V = 0.25*action[0] + 0.75 
-        #print(action[0].item())
         V = 0.25*action[0] + 0.75
         omega = 0.6*action[1]
 
@@ -113,87 +103,11 @@ class HuskyCPEnv(Env):
         savetxt(path + specifier + '_actW2.csv', self.log_rel_vel_ang, delimiter=',')
         '''
         
-        '''
-        # Ten condition
-        condtion = np.abs(omega)
-        if condtion > 0.55:
-            self.t_a = 0.5870
-            self.t_b = 2.5223
-        elif 0.5> condtion <=0.55:
-            self.t_a = 0.6
-            self.t_b = 2.3782
-        elif 0.45> condtion <=0.5:
-            self.t_a = 0.6356
-            self.t_b = 2.1620
-        elif 0.4> condtion <=0.45:
-            self.t_a = 0.6713
-            self.t_b = 1.9818
-        elif 0.35> condtion <=0.4:
-            self.t_a = 0.7070
-            self.t_b = 1.7656
-        elif 0.3> condtion <=0.35:
-            self.t_a = 0.7485
-            self.t_b = 1.5854
-        elif 0.25> condtion <=0.3:
-            self.t_a = 0.7975
-            self.t_b = 1.2972
-        elif 0.2> condtion <=0.25:
-            self.t_a = 0.8597
-            self.t_b = 1.0089
-        elif 0.15> condtion <=0.2:
-            self.t_a = 0.9214
-            self.t_b = 0.7207
-        elif 0.0 > condtion <= 0.15:
-            self.t_a = 0.9821
-            self.t_b = 0.3963
-        '''
-        
-        '''
-          # Five condition
-        condtion = np.abs(omega)
-        if condtion > 0.4:
-            self.t_a = 0.5935
-            self.t_b = 2.4502
-        elif 0.3> condtion <=0.4:
-            self.t_a = 0.6355
-            self.t_b = 2.0719
-        elif 0.2> condtion <=0.3:
-            self.t_a = 0.7278
-            self.t_b = 1.6755
-        elif 0.1> condtion <=0.2:
-            self.t_a = 0.8286
-            self.t_b = 1.1531
-        elif 0.0 > condtion <= 0.1:
-            self.t_a = 0.9517
-            self.t_b = 0.5585
-        '''
-        
-        
-        '''
-          # Three condition
-        condtion = np.abs(omega)
-        if condtion > 0.4:
-            self.t_a = 0.6076
-            self.t_b = 2.3541
-        elif 0.2 > condtion <=0.4:
-            self.t_a = 0.7311
-            self.t_b = 1.6575
-        elif 0.0 > condtion <= 0.2:
-            self.t_a = 0.9210
-            self.t_b = 0.7086
-        
-        '''
-
         
         # No condition
         self.t_a = 0.7510
         self.t_b = 1.5818
         
-        '''
-        # DR
-        self.t_a = 0.7510 + np.random.normal(0, 0.035, 1).item()
-        self.t_b = 1.5818 + np.random.normal(0, 0.085, 1).item()
-        '''
 
 
         A = np.array([[self.t_a*0.0825,self.t_a*0.0825],[-0.1486/self.t_b,0.1486/self.t_b]])
@@ -217,25 +131,31 @@ class HuskyCPEnv(Env):
         # IMAGE PROCESSING CODE 
         img, resX, resY = self.sim.getVisionSensorCharImage(self.visionSensorHandle)
         img = np.frombuffer(img, dtype=np.uint8).reshape(resY, resX, 3)
+        
+            
+        
         # In CoppeliaSim images are left to right (x-axis), and bottom to top (y-axis)
         # (consistent with the axes of vision sensors, pointing Z outwards, Y up)
         # and color format is RGB triplets, whereas OpenCV uses BGR:
         img = cv2.flip(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), 0) #Convert to Grayscale
 
         # Current image
-        cropped_image = img[288:480, 192:448] # Crop image to only to relevant path data (Done heuristically)
         crop_error = img[400:480, 192:448] # Crop image to only to relevant path data (Done heuristically)
-        im_bw = cv2.threshold(cropped_image, 125, 255, cv2.THRESH_BINARY)[1]  # convert the grayscale image to binary image
+        crop_error = cv2.threshold(crop_error, 225, 255, cv2.THRESH_BINARY)[1]  # convert the grayscale image to binary image
+        
+        cropped_image = img[288:480, 0:640] # Crop image to only to relevant path data (Done heuristically)
+        im_bw = cv2.threshold(cropped_image, 125, 200, cv2.THRESH_BINARY)[1]  # convert the grayscale image to binary image
+        im_bw = cv2.threshold(im_bw, 125, 255, cv2.THRESH_BINARY)[1]  # convert the grayscale image to binary image
         noise = np.random.normal(0, 25, im_bw.shape).astype(np.uint8)
         noisy_image = cv2.add(im_bw, noise)
-        im_bw = np.frombuffer(noisy_image, dtype=np.uint8).reshape(192, 256, 1) # Reshape to required observation size
+        im_bw = np.frombuffer(noisy_image, dtype=np.uint8).reshape(192, 640, 1) # Reshape to required observation size
         im_bw_obs = ~im_bw
         #cv2.imshow("For Calc", crop_error)
         #cv2.imshow("obs", im_bw)
         #cv2.waitKey(1)
 
         #Calcuation of centroid for lane centering
-        crop_error = ~crop_error
+        #crop_error = ~crop_error
         M = cv2.moments(crop_error) # calculate moments of binary image
         # calculate x,y coordinate of center
         if M["m00"] != 0:
@@ -265,7 +185,17 @@ class HuskyCPEnv(Env):
 
 
         #Send observation for learning
-        self.state = np.array(im_bw_obs,dtype = np.uint8) #Just input image to CNN network
+        if self.step_no == 0:
+            self.img = im_bw_obs
+        else:
+            if self.step_no % 1 == 0:
+                self.img = im_bw_obs
+            else:
+                pass
+                
+        
+        
+        self.state = np.array(self.img,dtype = np.uint8) #Just input image to CNN network
 
         #Display what is being sent as an observation for training :
         #cv2.imshow("Image", im_bw)
@@ -459,15 +389,16 @@ class HuskyCPEnv(Env):
         img = cv2.flip(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), 0) #Convert to Grayscale
 
         # Current image
-        cropped_image = img[288:480, 192:448] # Crop image to only to relevant path data (Done heuristically)
-        im_bw = cv2.threshold(cropped_image, 125, 255, cv2.THRESH_BINARY)[1]  # convert the grayscale image to binary image
+        cropped_image = img[288:480, 0:640] # Crop image to only to relevant path data (Done heuristically)
+        im_bw = cv2.threshold(cropped_image, 125, 200, cv2.THRESH_BINARY)[1]  # convert the grayscale image to binary image
+        im_bw = cv2.threshold(im_bw, 125, 255, cv2.THRESH_BINARY)[1]  # convert the grayscale image to binary image
         noise = np.random.normal(0, 25, im_bw.shape).astype(np.uint8)
         noisy_image = cv2.add(im_bw, noise)
-        im_bw = np.frombuffer(noisy_image, dtype=np.uint8).reshape(192, 256, 1) # Reshape to required observation size
-        im_bw = np.frombuffer(im_bw, dtype=np.uint8).reshape(192, 256, 1) # Reshape to required observation size
+        im_bw = np.frombuffer(noisy_image, dtype=np.uint8).reshape(192, 640, 1) # Reshape to required observation size
+        im_bw_obs = ~im_bw
         
         #Send observation for learning
-        self.state = np.array(im_bw,dtype = np.uint8) #Just input image to CNN network
+        self.state = np.array(im_bw_obs,dtype = np.uint8) #Just input image to CNN network
         
         info = {}
 

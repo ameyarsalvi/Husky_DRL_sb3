@@ -1,1 +1,1 @@
-from huskyCP_gym.envs.huskyCP_gym import HuskyCPEnv
+from huskyCP_gym.envs.huskyCP_gymCone import HuskyCPEnvCone
