@@ -26,7 +26,7 @@ import torch
 #from torch import Model # Made up package
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-model = PPO.load("/home/asalvi/Downloads/logs_br/log_ten/best_model_parallel_VS.zip", device='cuda')
+#model = PPO.load("/home/asalvi/Downloads/logs_br/log_ten/best_model_parallel_VS.zip", device='cuda')
 #print(model.policy)
 
 #model = PPO()
@@ -44,7 +44,7 @@ print('Program started')
 
 
 
-client = RemoteAPIClient('localhost',23002)
+client = RemoteAPIClient('localhost',23004)
 sim = client.getObject('sim')
 
 visionSensorHandle = sim.getObject('/Vision_sensor')
@@ -56,6 +56,7 @@ IMU = sim.getObject('/Accelerometer_forceSensor')
 #COM = sim.getObject('/Husky/ReferenceFrame')
 COM = sim.getObject('/Husky/Accelerometer/Accelerometer_mass')
 Husky_ref = sim.getObject('/Husky')
+CameraJoint = sim.getObject('/FORBody/Husky/Camera_joint')
 #InertialFrame = sim.getObject('/InertialFrame')
 
 #Gyro = sim.getObject('/GyroSensor_reference')
@@ -114,6 +115,18 @@ print(np.shape(data))
 
 while (t:= sim.getSimulationTime()) < 600:
     #print(t)
+
+
+
+    ####### Camera Control
+
+    CamPosition = sim.getJointPosition(CameraJoint)
+    print(CamPosition)
+
+    sim.setJointPosition(CameraJoint, -1*0*math.pi/180)
+
+    CamPosition = sim.getJointPosition(CameraJoint)
+    print(CamPosition)
     
     # IMAGE PROCESSING CODE ################
     '''
@@ -145,7 +158,7 @@ while (t:= sim.getSimulationTime()) < 600:
     # Current image
     cropped_image = img[400:480, 192:448] # Crop image to only to relevant path data (Done heuristically)
 
-    im_bw = cv2.threshold(cropped_image, 125, 255, cv2.THRESH_BINARY)[1]  # convert the grayscale image to binary image
+    #im_bw = cv2.threshold(cropped_image, 125, 255, cv2.THRESH_BINARY)[1]  # convert the grayscale image to binary image
     #cv2.imwrite('/home/asalvi/code_workspace/tmp/image_data/binary.png', im_bw) 
     '''
 
@@ -189,7 +202,7 @@ while (t:= sim.getSimulationTime()) < 600:
     
 
     #Neural network for inference ############### << Here
-
+    '''
     noise = np.random.normal(0, 25, im_bw.shape).astype(np.uint8)
     noisy_image = cv2.add(im_bw, noise)
     im_bw = np.frombuffer(noisy_image, dtype=np.uint8).reshape(192, 256, 1)
@@ -206,7 +219,9 @@ while (t:= sim.getSimulationTime()) < 600:
     
     #inputs = stable_baselines3.common.utils.obs_as_tensor(inputs, device)
     #inputs = inputs.unsqueeze(0)
+    '''
 
+    '''
 
     # Run forward pass
     #with torch.no_grad():
@@ -229,13 +244,13 @@ while (t:= sim.getSimulationTime()) < 600:
     
     ###### Generate control commands
     '''
-    p_gain = -0.01
+    #p_gain = -0.01
 
-    V = 0.5
-    omega = p_gain*error 
-    print(error)
+    #V = 0.5
+    #omega = p_gain*error 
+    #print(error)
     #print()
-    print(omega)
+    #print(omega)
     #print(omega.type)
     '''
     
@@ -269,14 +284,14 @@ while (t:= sim.getSimulationTime()) < 600:
     Left = phi_dots[0].item()
     Right = phi_dots[1].item()
     
+    '''
 
-
-    sim.setJointTargetVelocity(fl_w, Left)
-    sim.setJointTargetVelocity(fr_w, Right)
-    sim.setJointTargetVelocity(rl_w, Left)
-    sim.setJointTargetVelocity(rr_w, Right)
-    wheel_l.append(Left)
-    wheel_r.append(Right)
+    sim.setJointTargetVelocity(fl_w, 0)
+    sim.setJointTargetVelocity(fr_w, 0)
+    sim.setJointTargetVelocity(rl_w, 0)
+    sim.setJointTargetVelocity(rr_w, 0)
+    wheel_l.append(0)
+    wheel_r.append(0)
     
 
     # IMU and Gyro readings

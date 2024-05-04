@@ -28,7 +28,7 @@ plt.show()
 '''
 
 
-path = '/home/asalvi/code_workspace/Husky_CS_SB3/csv_data/vel_smth/'
+path = '/home/asalvi/code_workspace/Husky_CS_SB3/csv_data/sharp/'
 specifier = 'vp_75'
 
 
@@ -74,10 +74,10 @@ print(np.shape(err_Fn))
 print(np.shape(err_Vn))
 
 f3 = plt.figure("Vel")
-plt.plot(rel_V[250:750])
+plt.plot(rel_V)
 
 f4 = plt.figure("feat_tr")
-plt.plot(feat_tr[250:750])
+plt.plot(feat_tr)
 
 
 fig5, axs= plt.subplots(2, 2)

@@ -68,7 +68,7 @@ sys.path.insert(0, "/home/asalvi/code_workspace/Husky_CS_SB3/train/HuskyCP-gym")
 import huskyCP_gym
 
 # Create environment
-env = gym.make("huskyCP_gym/HuskyRL-v0",port = '23004')
+env = gym.make("huskyCP_gym/HuskyRL-v0",port = '23006',seed = 5,track_vel = 0.75)
 env = Monitor(env, log_dir)
 
 
@@ -79,6 +79,6 @@ model = PPO("CnnPolicy", env, learning_rate=0.00184, n_steps=512, batch_size=32,
 callback = SaveOnBestTrainingRewardCallback(check_freq=5000, log_dir=log_dir)
 
 # Train the agent and display a progress bar
-timesteps = 50000
+timesteps = 1e6
 #model.learn(total_timesteps=int(timesteps),progress_bar=True, callback=callback)
 model.learn(total_timesteps=int(timesteps),progress_bar=True)

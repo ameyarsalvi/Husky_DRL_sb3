@@ -26,25 +26,29 @@ print('Program started')
 
 
 
-client = RemoteAPIClient('localhost',23002)
+client = RemoteAPIClient('localhost',23006)
 sim = client.getObject('sim')
 
-'''
-ctrlPts = [0,0,0,0,0,0,1,1,0,0,0,0,0,1,1,1,0,0,0,0,1,0,1,0,0,0,0,1]
 
-scale = 5
+#ctrlPts = [0,0,0,0,0,0,1,1,0,0,0,0,0,1,1,1,0,0,0,0,1,0,1,0,0,0,0,1]
 
-wp = [0,0,0,0,0,0,1, 2*scale,-2*scale,0,0,0,0,1, 4*scale,-1*scale,0,0,0,0,1, 6*scale,-2*scale,0,0,0,0,1, 8*scale,0,0,0,0,0,1, 6*scale,2*scale,0,0,0,0,1, 4*scale,1*scale,0,0,0,0,1, 2*scale,2*scale,0,0,0,0,1]
+#scale = 5
+
+#wp = [0,0,0,0,0,0,1, 2*scale,-2*scale,0,0,0,0,1, 4*scale,-1*scale,0,0,0,0,1, 6*scale,-2*scale,0,0,0,0,1, 8*scale,0,0,0,0,0,1, 6*scale,2*scale,0,0,0,0,1, 4*scale,1*scale,0,0,0,0,1, 2*scale,2*scale,0,0,0,0,1]
 #pathHandle = sim.createPath(wp, 2,100,1.0)
 
 
-pathHandle = sim.getObject('/Path2')
+pathHandle = sim.getObject('/PathR')
 
 pathData = sim.unpackDoubleTable(sim.readCustomDataBlock(pathHandle, 'PATH'))
 
 pathArray = np.array(pathData)
-reshaped = np.reshape(pathArray,(100,7))
+print(np.shape(pathData))
+
+
+reshaped = np.reshape(pathArray,(250,7))
 print(np.shape(reshaped))
+
 print(reshaped[:,0])
 print(reshaped[:,1])
 print(reshaped[:,2])
@@ -54,26 +58,40 @@ print(reshaped[:,5])
 print(reshaped[:,6])
 
 
+#rev_pathL = [x_rev,y_rev]
+#print(np.shape(rev_pathL))
+
+
+#import pandas as pd 
+#df = pd.DataFrame(reshaped)
+#df.to_csv("/home/asalvi/code_workspace/Husky_CS_SB3/HuskyModels/path2/pathR.csv", header=False, index=False)
+
 #fig1 = plt.figure()
 #plt.plot(reshaped[:,0], reshaped[:,1])
+#plt.plot(rev_pathL[0],rev_pathL[1],'*')
 #plt.show()
 
 
-fig2 = plt.figure()
-plt.plot(reshaped[:,3])
-plt.plot(reshaped[:,4])
-plt.plot(reshaped[:,5])
-plt.plot(reshaped[:,6])
-plt.show()
+#fig2 = plt.figure()
+#plt.plot(reshaped[:,3])
+#plt.plot(reshaped[:,4])
+#plt.plot(reshaped[:,5])
+#plt.plot(reshaped[:,6])
+#plt.show()
 
-#cone = []
+
+############### Cone placement
+
+
+
+cone = []
 #primary_cone = sim.getObject('/Cone[0]')
 #print(primary_cone)
 
 
-dummy = [None] * 100
+#dummy = [None] * 100
 
-for x in range(100):
+for x in range(250):
         #print([cone_0])
         #cone_0 = sim.getObject(cone_0)
         #str_pt = '/Cone[' + str(int(x)) + ']' 
@@ -90,8 +108,10 @@ for x in range(100):
     del cone
         #del pose
 
-'''    
 
+
+
+'''
 defaultIdleFps = sim.getInt32Param(sim.intparam_idle_fps)
 sim.setInt32Param(sim.intparam_idle_fps, 0)
 
@@ -103,7 +123,7 @@ sim.startSimulation()
 #Get object handles from CoppeliaSim handles
 visionSensorHandle = sim.getObject('/Vision_sensor')
 
-while (t:= sim.getSimulationTime()) < 600:
+while (t:= sim.getSimulationTime()) < 600:[reshaped[i,0], reshaped[i+1,0]
 
     img, resX, resY = sim.getVisionSensorCharImage(visionSensorHandle)
     img = np.frombuffer(img, dtype=np.uint8).reshape(resY, resX, 3)
@@ -197,7 +217,7 @@ while (t:= sim.getSimulationTime()) < 600:
     sim.step()
 
 sim.stopSimulation()
-
+'''
 
 
 

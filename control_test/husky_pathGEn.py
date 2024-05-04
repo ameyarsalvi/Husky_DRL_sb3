@@ -28,13 +28,14 @@ print('Program started')
 client = RemoteAPIClient('localhost',23004)
 sim = client.getObject('sim')
 
+'''
 ctrlPts = [0,0,0,0,0,0,1,1,0,0,0,0,0,1,1,1,0,0,0,0,1,0,1,0,0,0,0,1]
 
 scale = 5
 
 wp = [0,0,0,0,0,0,1, 2*scale,-2*scale,0,0,0,0,1, 4*scale,-1*scale,0,0,0,0,1, 6*scale,-2*scale,0,0,0,0,1, 8*scale,0,0,0,0,0,1, 6*scale,2*scale,0,0,0,0,1, 4*scale,1*scale,0,0,0,0,1, 2*scale,2*scale,0,0,0,0,1]
 #pathHandle = sim.createPath(wp, 2,100,1.0)
-
+'''
 pathHandle = sim.getObject('/Path')
 
 pathData = sim.unpackDoubleTable(sim.readCustomDataBlock(pathHandle, 'PATH'))
@@ -54,7 +55,7 @@ sim.startSimulation()
 #Get object handles from CoppeliaSim handles
 visionSensorHandle = sim.getObject('/Vision_sensor')
 
-while (t:= sim.getSimulationTime()) < 60:
+while (t:= sim.getSimulationTime()) < 5:
 
     img, resX, resY = sim.getVisionSensorCharImage(visionSensorHandle)
     img = np.frombuffer(img, dtype=np.uint8).reshape(resY, resX, 3)
@@ -76,12 +77,13 @@ while (t:= sim.getSimulationTime()) < 60:
 
 sim.stopSimulation()
 
-'''
+
 
 fig1 = plt.figure()
 plt.plot(reshaped[:,0], reshaped[:,1])
 plt.show()
 
+'''
 fig2 = plt.figure()
 plt.plot(reshaped[:,3])
 plt.plot(reshaped[:,4])

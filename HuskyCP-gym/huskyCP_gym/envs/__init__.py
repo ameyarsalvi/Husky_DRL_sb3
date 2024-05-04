@@ -1,1 +1,1 @@
-from huskyCP_gym.envs.huskyCP_gymCone import HuskyCPEnvCone
+from huskyCP_gym.envs.huskyCP_gymPathFrenC import HuskyCPEnvPathFrenC

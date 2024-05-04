@@ -1,4 +1,3 @@
-
 import numpy as np
 from numpy import linalg
 import gymnasium as gym
@@ -10,6 +9,8 @@ import cv2
 from numpy.linalg import inv
 from numpy import savetxt
 import pickle
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
 
 
 import os
@@ -56,10 +57,11 @@ class HuskyCPEnvCone(Env):
         
         #Action space def : [Left wheel velocity (rad/s), Right wheel velocity (rad/s)]
         self.action_space = Box(low=np.array([[-1],[-1]]), high=np.array([[1],[1]]),dtype=np.float32)
+        #self.action_space = Box(low=np.array([[-1],[-1],[-1],[-1],[-1],[-1],[-1],[-1],[-1],[-1],[-1],[-1],[-1],[-1],[-1],[-1]]), high=np.array([[1],[1],[1],[1],[1],[1],[1],[1],[1],[1],[1],[1],[1],[1],[1],[1]]),dtype=np.float32)
 
         # Observation shape definition : [Image pixels of size 64x256x1]
         #self.observation_space = Box(low=np.array([[-1000],[-1000],[-1000],[-1000]]), high=np.array([[1000],[1000],[1000],[1000]]),dtype=np.float32)
-        self.observation_space = Box(low=0, high=255,shape=(192,640,1),dtype=np.uint8)
+        self.observation_space = Box(low=0, high=255,shape=(96,320,1),dtype=np.uint8)
         
 
         # Initial decleration of variables
@@ -72,6 +74,26 @@ class HuskyCPEnvCone(Env):
         self.step_no = 0
         self.global_timesteps = 0
         self.z_ang = []
+        self.new_action0 = []
+        self.new_action1 = []
+        self.new_action2 = []
+        self.new_action3 = []
+        self.new_action4 = []
+        self.new_action5 = []
+        self.new_action6 = []
+        self.new_action7 = []
+        self.new_action8 = []
+        self.new_action9 = []
+        self.new_action10 = []
+        self.new_action11 = []
+        #self.h1, = plt.plot([],[])
+        self.lin_Vel = []
+
+        #self.fig, self.ax = plt.subplots()
+        #self.graph = self.ax.plot(self.step_no,self.lin_Vel,color = 'g')[0]
+        #plt.ylim(0,10)
+        
+        
         #log variables
         self.log_err_feat = []
         self.log_err_vel = []
@@ -83,14 +105,81 @@ class HuskyCPEnvCone(Env):
         self.log_actW = []
         self.log_err_omega = []
         self.log_err_omega_norm = []
+    
 
 
     def step(self,action):
  
-     
+        '''
+        #Take action in sequence
+        if self.step_no == 0:
+            self.new_action0 = action[0]
+            self.new_action1 = action[1]
+            self.new_action2 = action[2]
+            self.new_action3 = action[3]
+            self.new_action4 = action[4]
+            self.new_action5 = action[5]
+            self.new_action6 = action[6]
+            self.new_action7 = action[7]
+            self.new_action8 = action[8]
+            self.new_action9 = action[9]
+            self.new_action10 = action[10]
+            self.new_action11 = action[11]
+            self.new_action12 = action[12]
+            self.new_action13 = action[13]
+            self.new_action14 = action[14]
+            self.new_action15 = action[15]
+        else:
+            if self.step_no % 50 == 0:
+                self.new_action0 = action[0]
+                self.new_action1 = action[1]
+                self.new_action2 = action[2]
+                self.new_action3 = action[3]
+                self.new_action4 = action[4]
+                self.new_action5 = action[5]
+                self.new_action6 = action[6]
+                self.new_action7 = action[7]
+                self.new_action8 = action[8]
+                self.new_action9 = action[9]
+                self.new_action10 = action[10]
+                self.new_action11 = action[11]
+                self.new_action12 = action[12]
+                self.new_action13 = action[13]
+                self.new_action14 = action[14]
+                self.new_action15 = action[15]
+            else:
+                pass
+        '''
+        
         # Take Action
         V = 0.25*action[0] + 0.75
-        omega = 0.6*action[1]
+        omega = 0.75*action[1]
+        
+        
+        '''
+        # Rescale Amplitude and freq
+        A1 = 0.25*self.new_action0 + 0.75
+        om1 = 24*self.new_action1 + 26
+        A2 = 0.25*self.new_action2 + 0.75
+        om2 = 24*self.new_action3 + 26
+        A3 = 0.25*self.new_action4 + 0.75
+        om3 = 24*self.new_action5 + 26
+        A4 = 0.25*self.new_action6 + 0.75
+        om4 = 24*self.new_action7 + 26
+        
+        V = A1*np.sin(om1*self.step_no*0.05) + A2*np.sin(om2*self.step_no*0.05 + 0.785) + A3*np.sin(om3*self.step_no*0.05 + 2*0.785) + A4*np.sin(om4*self.step_no*0.05 + 3*0.785)
+        
+        A5 = 0.6*self.new_action8
+        om5 = 24*self.new_action9 + 26
+        A6 = 0.6*self.new_action10
+        om6 = 24*self.new_action11 + 26
+        A7 = 0.6*self.new_action12
+        om7 = 24*self.new_action13 + 26
+        A8 = 0.6*self.new_action14
+        om8 = 24*self.new_action15 + 26
+        
+        omega = A5*np.sin(om5*self.step_no*0.05) + A6*np.sin(om6*self.step_no*0.05  + 0.785) + A7*np.sin(om7*self.step_no*0.05  + 2*0.785) + A8*np.sin(om8*self.step_no*0.05  + 3*0.785)
+        '''
 
         
 
@@ -116,13 +205,20 @@ class HuskyCPEnvCone(Env):
         phi_dots = phi_dots.astype(float)
         Left = phi_dots[0].item()
         Right = phi_dots[1].item()
+
+
+        self.sim.setJointTargetVelocity(self.fl_w, Left)
+        self.sim.setJointTargetVelocity(self.fr_w, Left)
+        self.sim.setJointTargetVelocity(self.rl_w, Right)
+        self.sim.setJointTargetVelocity(self.rr_w, Right)
+        '''
     
         #Joint Velocities similar to how velocities are set on actual robot
-        self.sim.setJointTargetVelocity(self.fl_w, Left)
-        self.sim.setJointTargetVelocity(self.fr_w, Right)
-        self.sim.setJointTargetVelocity(self.rl_w, Left)
-        self.sim.setJointTargetVelocity(self.rr_w, Right)
-
+        self.sim.setJointTargetVelocity(self.fl_w, action[0].item())
+        self.sim.setJointTargetVelocity(self.fr_w, action[1].item())
+        self.sim.setJointTargetVelocity(self.rl_w, action[2].item())
+        self.sim.setJointTargetVelocity(self.rr_w, action[3].item())
+        '''
         
          # Simulate step (CoppeliaSim Command) (Progress on the taken action)
         self.sim.step()
@@ -139,23 +235,23 @@ class HuskyCPEnvCone(Env):
         # and color format is RGB triplets, whereas OpenCV uses BGR:
         img = cv2.flip(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), 0) #Convert to Grayscale
 
-        # Current image
-        crop_error = img[400:480, 192:448] # Crop image to only to relevant path data (Done heuristically)
-        crop_error = cv2.threshold(crop_error, 225, 255, cv2.THRESH_BINARY)[1]  # convert the grayscale image to binary image
-        
         cropped_image = img[288:480, 0:640] # Crop image to only to relevant path data (Done heuristically)
+        cropped_image = cv2.resize(cropped_image, (0,0), fx=0.5, fy=0.5)
         im_bw = cv2.threshold(cropped_image, 125, 200, cv2.THRESH_BINARY)[1]  # convert the grayscale image to binary image
         im_bw = cv2.threshold(im_bw, 125, 255, cv2.THRESH_BINARY)[1]  # convert the grayscale image to binary image
         noise = np.random.normal(0, 25, im_bw.shape).astype(np.uint8)
         noisy_image = cv2.add(im_bw, noise)
-        im_bw = np.frombuffer(noisy_image, dtype=np.uint8).reshape(192, 640, 1) # Reshape to required observation size
+        im_bw = np.frombuffer(noisy_image, dtype=np.uint8).reshape(96, 320, 1) # Reshape to required observation size
         im_bw_obs = ~im_bw
+
+        
+        crop_error = img[400:480, 192:448] # Crop image to only to relevant path data (Done heuristically)
+        crop_error = cv2.threshold(crop_error, 225, 255, cv2.THRESH_BINARY)[1]  # convert the grayscale image to binary image
+
         #cv2.imshow("For Calc", crop_error)
-        #cv2.imshow("obs", im_bw)
+        #cv2.imshow("obs", im_bw_obs)
         #cv2.waitKey(1)
 
-        #Calcuation of centroid for lane centering
-        #crop_error = ~crop_error
         M = cv2.moments(crop_error) # calculate moments of binary image
         # calculate x,y coordinate of center
         if M["m00"] != 0:
@@ -163,7 +259,8 @@ class HuskyCPEnvCone(Env):
             cY = int(M["m01"] / M["m00"])
         else:
             cX, cY = 0, 0
-    
+        
+        #cX = 128
 
 
         # Centering Error :
@@ -183,12 +280,14 @@ class HuskyCPEnvCone(Env):
         else:
             reset = 0
 
-
+        
+        
+        throttle = 1
         #Send observation for learning
         if self.step_no == 0:
             self.img = im_bw_obs
         else:
-            if self.step_no % 1 == 0:
+            if self.step_no % throttle == 0:
                 self.img = im_bw_obs
             else:
                 pass
@@ -209,75 +308,53 @@ class HuskyCPEnvCone(Env):
         2. Increase linear velocity (This encourages to move so that the robot doesn't learn a trivial action)
         3. Reduce center tracing error (This encourages smoothening)
         '''
-        #rew_atr = np.array([self.step_no**2,V.item(),self.error]) # Reward Attributes 
-        #rew_wgt = np.array([10,10,0])
-        #reward = np.float64(np.dot(rew_atr,rew_wgt))
 
-        # No risk
-        #inc_wt = 4*self.global_timesteps*1e-6 
-        # Get robot realized linear velocity
+        # Linear velocity reward params
+
         linear_vel, angular_vel = self.sim.getVelocity(self.COM)
         sRb = self.sim.getObjectMatrix(self.COM,self.sim.handle_world)
         Rot = np.array([[sRb[0],sRb[1],sRb[2]],[sRb[4],sRb[5],sRb[6]],[sRb[8],sRb[9],sRb[10]]])
         vel_body = np.matmul(np.transpose(Rot),np.array([[linear_vel[0]],[linear_vel[1]],[linear_vel[2]]]))
         realized_vel = np.abs(-1*vel_body[2].item())
-        track_vel = self.track_vel ## << -- study update
+        self.lin_Vel = realized_vel
+        print(realized_vel)
+        track_vel = self.track_vel + 0.25*np.sin(self.step_no)
         err_vel = np.abs(track_vel - realized_vel)
         err_vel = np.clip(err_vel,0,0.5)
+        norm_err_vel = (err_vel - 0)/(0.5) ##   << -------------- Normalized Linear Vel
+
+
+        # Lane centering reward params
         err_track = np.abs(self.error)
         if err_track > 125:
             err_track = 125   
         else:
             pass
-        err_effort = np.abs(omega)     
-        norm_err_vel = (err_vel - 0)/(0.5)
-        norm_err_track = (err_track - 0)/125
-        norm_err_step = (self.step_no -0)/5000
-        norm_err_eff = (err_effort)/0.6
+        norm_err_track = (err_track - 0)/125 ##   << -------------- Normalized Lane centering
 
+        # Angular velocity reward params
         Gyro_Z = self.sim.getFloatSignal("myGyroData_angZ")
-        if Gyro_Z:
-            self.z_ang.append(Gyro_Z)
+        #if Gyro_Z:
+        ##    self.z_ang.append(Gyro_Z)
+        err_effort = np.abs(Gyro_Z)     
+        norm_err_eff = (err_effort)/0.6 ##   << -------------- Normalized angular velocity
 
-        #Pretraining 
-        #omega_des = -0.05*self.error
-        #act_error = omega_des - omega
-        #norm_act_error = (act_error + 1 )/2
-        #reward = (1 - norm_act_error)**2
-
+        # Total reward
         reward = (1 - norm_err_track)**2 + (1 - norm_err_vel)**2 +(1- norm_err_eff)**2
-        #reward = np.float64(reward)
-        #reward = 1 - norm_err_track
         reward = np.float64(reward)
 
+
         
-        #self.log_err_feat = err_track.tolist()
         
         #Comment in/out depending on training or evaluation
         
         ### Data logging
         
-        path = '/home/asalvi/code_workspace/Husky_CS_SB3/csv_data/vel_perf_all/'
+        path = '/home/asalvi/code_workspace/Husky_CS_SB3/csv_data/sharp/'
         specifier = 'vp_' + str(int(100*self.track_vel))
-
-        '''
-        self.log_err_feat.append(err_track)
-        savetxt(path + specifier + '_err_feat.csv', self.log_err_feat, delimiter=',')
-        self.log_err_vel.append(err_vel)
-        savetxt(path + specifier + '_err_vel.csv', self.log_err_vel, delimiter=',')
-        self.log_err_feat_norm.append(norm_err_track)
-        savetxt(path + specifier + '_err_feat_norm.csv', self.log_err_feat_norm, delimiter=',')
-        self.log_err_vel_norm.append(norm_err_vel)
-        savetxt(path + specifier + '_err_vel_norm.csv', self.log_err_vel_norm, delimiter=',')
-
-        self.log_rel_vel_lin.append(realized_vel)
-        savetxt(path + specifier + '_rel_vel_lin.csv', self.log_rel_vel_lin, delimiter=',')
-        self.log_rel_vel_ang.append(Gyro_Z)
-        savetxt(path + specifier + '_rel_vel_ang.csv', self.log_rel_vel_ang, delimiter=',')
-        '''
         
         '''
-        
+
         self.log_err_feat.append(err_track)
         with open(path + specifier + "_err_feat", "wb") as fp:   #Pickling
             pickle.dump(self.log_err_feat, fp)
@@ -301,11 +378,11 @@ class HuskyCPEnvCone(Env):
         self.log_err_omega_norm.append(norm_err_eff)
         with open(path + specifier + "_err_omega_norm", "wb") as fp:   #Pickling
             pickle.dump(self.log_err_vel_norm, fp)
-        
+
         self.log_rel_vel_lin.append(realized_vel)
         with open(path + specifier + "_rel_vel_lin", "wb") as fp:   #Pickling
             pickle.dump(self.log_rel_vel_lin, fp)
-        
+
         self.log_rel_vel_ang.append(Gyro_Z)
         with open(path + specifier + "_rel_vel_ang", "wb") as fp:   #Pickling
             pickle.dump(self.log_rel_vel_ang, fp)
@@ -349,6 +426,7 @@ class HuskyCPEnvCone(Env):
         self.episode_length = 5000
         self.step_no = 0
         self.z_ang = []
+        #self.track_vel = 0.6 + 0.4*np.random.random(size=None)
 
         self.sim.stopSimulation()
         while self.sim.getSimulationState() != self.sim.simulation_stopped:
@@ -358,7 +436,7 @@ class HuskyCPEnvCone(Env):
 
         # Randomize spawning location so that learning is a bit more generalized
         # Three objects kept at different locations
-        rand_spawn = np.random.randint(1, 9, 1, dtype=int)
+        rand_spawn = np.random.randint(1, 7, 1, dtype=int)
         if rand_spawn == 1:
             spawn = self.sim.getObject('/Spawn1')   
         elif rand_spawn == 2:
@@ -371,13 +449,34 @@ class HuskyCPEnvCone(Env):
             spawn = self.sim.getObject('/Spawn5')
         elif rand_spawn == 6:
             spawn = self.sim.getObject('/Spawn6')
-        elif rand_spawn == 7:
-            spawn = self.sim.getObject('/Spawn7')
-        else :
-            spawn = self.sim.getObject('/Spawn8') 
+        #elif rand_spawn == 7:
+        #    spawn = self.sim.getObject('/Spawn7')
+        #else :
+        #    spawn = self.sim.getObject('/Spawn8') 
+        
+        #spawn = self.sim.getObject('/Spawn1')
                     
         pose = self.sim.getObjectPose(spawn, self.sim.handle_world)
         self.sim.setObjectPose(self.COM, pose,self.sim.handle_world)
+
+        ####### Sligthly reshuffle cones ############
+
+        for x in range(100):
+
+            cone1 = self.sim.getObject('/Cone[' + str(int(x+1)) + ']')
+            cone1_pose = self.sim.getObjectPose(cone1, self.sim.handle_world)
+            x_dist = 0.1*np.random.random(size=None)
+            y_dist = 0.1*np.random.random(size=None)
+            self.sim.setObjectPose(cone1, [cone1_pose[0]+x_dist, cone1_pose[1]+y_dist,cone1_pose[2], cone1_pose[3],cone1_pose[4],cone1_pose[5],cone1_pose[6]], self.sim.handle_world)
+
+
+            cone2 = self.sim.getObject('/Cone2[' + str(int(x+1)) + ']')
+            cone2_pose = self.sim.getObjectPose(cone2, self.sim.handle_world)
+            x_dist = 0.1*np.random.random(size=None)
+            y_dist = 0.1*np.random.random(size=None)
+            self.sim.setObjectPose(cone2, [cone2_pose[0]+x_dist,cone2_pose[1]+y_dist,cone2_pose[2],cone2_pose[3],cone2_pose[4],cone2_pose[5],cone2_pose[6]], self.sim.handle_world)
+            
+
         
     
         # IMAGE PROCESSING CODE (Only to send obseravation)
@@ -390,11 +489,12 @@ class HuskyCPEnvCone(Env):
 
         # Current image
         cropped_image = img[288:480, 0:640] # Crop image to only to relevant path data (Done heuristically)
+        cropped_image = cv2.resize(cropped_image, (0,0), fx=0.5, fy=0.5)
         im_bw = cv2.threshold(cropped_image, 125, 200, cv2.THRESH_BINARY)[1]  # convert the grayscale image to binary image
         im_bw = cv2.threshold(im_bw, 125, 255, cv2.THRESH_BINARY)[1]  # convert the grayscale image to binary image
         noise = np.random.normal(0, 25, im_bw.shape).astype(np.uint8)
         noisy_image = cv2.add(im_bw, noise)
-        im_bw = np.frombuffer(noisy_image, dtype=np.uint8).reshape(192, 640, 1) # Reshape to required observation size
+        im_bw = np.frombuffer(noisy_image, dtype=np.uint8).reshape(96, 320, 1) # Reshape to required observation size
         im_bw_obs = ~im_bw
         
         #Send observation for learning
@@ -414,8 +514,8 @@ Environment Validation code
 
 #Comment out three lines to validated environment
 
-#from stable_baselines3.common.env_checker import check_env
-#env = HuskyCPEnv()
-#check_env(env)
-
+from stable_baselines3.common.env_checker import check_env
+env = HuskyCPEnvCone()
+check_env(env)
 '''
+

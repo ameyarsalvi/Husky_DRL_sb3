@@ -10,6 +10,7 @@ import cv2
 from numpy.linalg import inv
 from numpy import savetxt
 import pickle
+from matplotlib.animation import FuncAnimation
 
 
 import os
@@ -258,11 +259,13 @@ class HuskyCPEnv(Env):
         # Updating reset condition to sum of pixels
         #print(self.error)
         #print(np.sum(im_bw).item())
+
+        
         if np.sum(im_bw).item() == 12533760:
             reset = 1
         else:
             reset = 0
-
+        
 
         #Send observation for learning
         self.state = np.array(im_bw_obs,dtype = np.uint8) #Just input image to CNN network
@@ -291,6 +294,7 @@ class HuskyCPEnv(Env):
         Rot = np.array([[sRb[0],sRb[1],sRb[2]],[sRb[4],sRb[5],sRb[6]],[sRb[8],sRb[9],sRb[10]]])
         vel_body = np.matmul(np.transpose(Rot),np.array([[linear_vel[0]],[linear_vel[1]],[linear_vel[2]]]))
         realized_vel = np.abs(-1*vel_body[2].item())
+        self.log_rel_vel_lin.append(realized_vel)
         track_vel = self.track_vel ## << -- study update
         err_vel = np.abs(track_vel - realized_vel)
         err_vel = np.clip(err_vel,0,0.5)
@@ -404,6 +408,7 @@ class HuskyCPEnv(Env):
         self.step_no += 1 
         self.global_timesteps +=1   
 
+
         info ={}
 
         return self.state, reward, done, False, info
@@ -488,3 +493,5 @@ Environment Validation code
 #check_env(env)
 
 '''
+
+

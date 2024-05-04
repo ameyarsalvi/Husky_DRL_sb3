@@ -1,5 +1,4 @@
 
-
 import gymnasium as gym
 import numpy as np
 from torch import nn as nn
@@ -13,7 +12,7 @@ from stable_baselines3.common import results_plotter
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.results_plotter import load_results, ts2xy, plot_results
 from stable_baselines3.common.callbacks import BaseCallback
-from stable_baselines3.common.callbacks import CheckpointCallback
+from stable_baselines3.common.callbacks import CheckpointCallback, CallbackList
 
 from stable_baselines3.common.logger import configure
 
@@ -32,12 +31,14 @@ import os
 #log_dir = "/home/asalvi/code_workspace/tmp/log0"
 #os.makedirs(log_dir, exist_ok=True)
 
-tmp_path = "/home/asalvi/code_workspace/tmp/sb3_log/DR_trial/vids/"
+tmp_path = "/home/asalvi/code_workspace/tmp/sb3_log/FrenetPath/bslnFren/"
+variant = 'bslnFren'
 # set up logger
 os.makedirs(tmp_path, exist_ok=True)
 new_logger = configure(tmp_path, ["stdout", "csv", "tensorboard"])
 
-total_timesteps = 5000
+total_timesteps = 2e7
+
 
 # Callback Definitions
 
@@ -100,12 +101,13 @@ def make_env(env_id, rank, seed=0):
     def _init():
         port_no = str(23004 + 2*rank)
         print(port_no)
-        seed = 5 + rank
+        seed = 1 + rank
         env = gym.make(env_id, port = port_no,seed = seed,track_vel = 0.75)
         #env.seed(seed + rank)
         return env
     #set_random_seed(seed)
     return _init
+
 
 
 if __name__ == '__main__':
@@ -118,20 +120,21 @@ if __name__ == '__main__':
     env = VecNormalize(env, training=True, norm_obs=False, norm_reward=True, clip_obs=10.0, clip_reward=1000.0, gamma=0.99, epsilon=1e-08, norm_obs_keys=None)
 
 
-    callback = SaveOnBestTrainingRewardCallback(check_freq=156250, log_dir=tmp_path)
-    checkpoint_callback = CheckpointCallback(save_freq=1e6,save_path= tmp_path + "checkpoints/", name_prefix="DR",save_replay_buffer=True,save_vecnormalize=True)
+    best_callback = SaveOnBestTrainingRewardCallback(check_freq=1000, log_dir=tmp_path)
+    checkpoint_callback = CheckpointCallback(save_freq=78125,save_path=tmp_path + "checkpoints/",name_prefix=variant,save_replay_buffer=True,save_vecnormalize=True)
+    callback = CallbackList([best_callback])
 
 
-    model = PPO("CnnPolicy", env,learning_rate=0.00001, n_steps=256, batch_size=256, n_epochs=5, ent_coef= 0.005, gamma=0.98, gae_lambda=0.98,
+    model = PPO("CnnPolicy", env,learning_rate=0.000001, n_steps=512, batch_size=512, n_epochs=5, ent_coef= 0.005, gamma=0.98, gae_lambda=0.98,
                 clip_range=0.1, vf_coef=0.5, max_grad_norm=0.5,sde_sample_freq=16, 
-                policy_kwargs=dict(normalize_images=False, log_std_init=-1.0,ortho_init=False, activation_fn=nn.ReLU, net_arch=dict(pi=[64], vf=[64])), 
+                policy_kwargs=dict(normalize_images=True, log_std_init=-1.0,ortho_init=False, activation_fn=nn.ReLU, net_arch=dict(pi=[64], vf=[64])), 
                 verbose=1, tensorboard_log=tmp_path)
     
     model.set_logger(new_logger)
     model.learn(total_timesteps, callback=callback, progress_bar= True)
-    model.save( tmp_path + "ten_16_final")
+    model.save(tmp_path + variant)
 
-    #obs = env.reset()
+    obs = env.reset()
     #for _ in range(1000):
     #    action, _states = model.predict(obs)
     #    obs, rewards, dones, info = env.step(action)
