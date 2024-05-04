@@ -8,6 +8,8 @@ Apart from the codes in the repo, the following file is required :
 
 CoppeliaSim learning environment : https://drive.google.com/file/d/15KDAMJYCn4OqUKDFlG63W_2zZ9ltId-w/view?usp=drive_link
 
+Models Repo : https://drive.google.com/drive/folders/1K5HAi7Blcdx7yifeQZ8zlVoPxUpvrrBN?usp=drive_link
+
 Training logs of the first training : https://drive.google.com/file/d/1gLl0uQDoTES2jF7zHruuBrIsmuKdnraj/view?usp=drive_link
 
 Pictures of first training : 
